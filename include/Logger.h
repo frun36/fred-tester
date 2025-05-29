@@ -20,7 +20,7 @@ class Logger {
     }
 
     template<typename... Args>
-    static std::string debug(
+    static void debug(
         const std::string& name,
         const std::format_string<Args...>& fmt,
         Args&&... args

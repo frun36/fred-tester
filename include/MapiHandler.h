@@ -3,6 +3,7 @@
 #include <chrono>
 #include <condition_variable>
 #include <cstring>
+#include <expected>
 #include <mutex>
 #include <optional>
 #include <string>
@@ -15,7 +16,7 @@ class MapiHandler {
     struct CommonResult {
         std::mutex mtx;
         std::condition_variable cv;
-        std::string message;
+        std::string contents;
         bool is_ready;
         bool is_error;
         bool is_handled;
@@ -35,11 +36,12 @@ class MapiHandler {
 
         void infoHandler() override {
             std::lock_guard<std::mutex> lock(res.mtx);
+            Logger::debug(name, "Received: {}", getString());
             if (res.is_handled) {
-                Logger::warning(name, "Unexpected response");
+                Logger::warning(name, "Unexpected response: {}", getString());
                 return;
             }
-            res.message = getString();
+            res.contents = getString();
             res.is_ready = true;
             res.is_error = is_error;
             res.is_handled = true;
@@ -60,7 +62,7 @@ class MapiHandler {
         m_ans(name + "_ANS", m_res, false),
         m_err(name + "_ERR", m_res, true) {}
 
-    std::optional<std::string> handle_command(
+    std::expected<std::string, std::string> handle_command(
         std::string command,
         double timeout,
         bool expect_error = false
@@ -69,10 +71,12 @@ class MapiHandler {
             std::lock_guard<std::mutex> lock(m_res.mtx);
             m_res.is_ready = false;
             m_res.is_handled = false;
-            m_res.message.clear();
+            m_res.contents.clear();
             m_res.is_error = false;
         }
         DimClient::sendCommand(m_req.c_str(), command.c_str());
+
+        Logger::debug(m_name, "Sent command: {}", command);
 
         std::unique_lock<std::mutex> lock(m_res.mtx);
         if (!m_res.cv.wait_for(
@@ -80,13 +84,12 @@ class MapiHandler {
                 std::chrono::duration<double>(timeout),
                 [&] { return m_res.is_ready; }
             )) {
-            Logger::error(m_name, "Response timeout");
-            return std::nullopt;
+            return std::unexpected("Response timeout");
         }
 
-        if (m_res.is_error && expect_error || !m_res.is_error && !expect_error)
-            return m_res.message;
-        Logger::error(m_name, "{}", m_res.message);
-        return std::nullopt;
+        if ((m_res.is_error && expect_error)
+            || (!m_res.is_error && !expect_error))
+            return m_res.contents;
+        return std::unexpected(m_res.contents);
     }
 };
