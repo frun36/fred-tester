@@ -1,16 +1,57 @@
+#include <regex>
+#include <string>
 #include <thread>
 
 #include "Logger.h"
-#include "TopicHandler.h"
+#include "MapiHandler.h"
 
 int main(void) {
-    TopicHandler topic("FRED/TCM/TCM0/PARAMETERS");
+    MapiHandler topic("FRED/TCM/TCM0/PARAMETERS");
 
-    while (true) {
-        auto res = topic.handle_command("DELAY_A,WRITE,13", 1., true);
+    {
+        auto res =
+            topic.handle_command("LASER_PATTERN_LSB,WRITE,0xFF", 1., false);
         if (res) {
-            Logger::info("TEST", "{}", *res);
+            Logger::info("Laser pattern write", "{}", *res);
+            std::string pat = R"(LASER_PATTERN_LSB,(\d+(\.\d+)?)\n)";
+            std::regex re(pat);
+            std::smatch match;
+            if (!std::regex_match(*res, match, re)) {
+                Logger::error(
+                    "Laser pattern write",
+                    "{} doesn't match {}",
+                    *res,
+                    pat
+                );
+            } else {
+                double val = std::stod(match[1].str());
+                if (val != 255.) {
+                    Logger::error("Laser pattern write", "Invalid value");
+                }
+            }
         }
-        std::this_thread::sleep_for(std::chrono::duration<double>(1.0));
+    }
+
+    {
+        auto res = topic.handle_command("LASER_PATTERN_LSB,READ", 1., false);
+        if (res) {
+            Logger::info("Laser pattern read", "{}", *res);
+            std::string pat = R"(LASER_PATTERN_LSB,(\d+(\.\d+)?)\n)";
+            std::regex re(pat);
+            std::smatch match;
+            if (!std::regex_match(*res, match, re)) {
+                Logger::error(
+                    "Laser pattern read",
+                    "{} doesn't match {}",
+                    *res,
+                    pat
+                );
+            } else {
+                double val = std::stod(match[1].str());
+                if (val != 255.) {
+                    Logger::error("Laser pattern read", "Invalid value");
+                }
+            }
+        }
     }
 }

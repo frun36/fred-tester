@@ -10,7 +10,7 @@
 #include "Logger.h"
 #include "dic.hxx"
 
-class TopicHandler {
+class MapiHandler {
   private:
     struct CommonResult {
         std::mutex mtx;
@@ -54,7 +54,7 @@ class TopicHandler {
     MapiInfo m_err;
 
   public:
-    TopicHandler(const std::string& name) :
+    MapiHandler(const std::string& name) :
         m_name(name),
         m_req(name + "_REQ"),
         m_ans(name + "_ANS", m_res, false),
