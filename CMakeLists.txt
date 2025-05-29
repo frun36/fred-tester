@@ -6,13 +6,12 @@ if("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
   message(FATAL_ERROR "In-source builds are not allowed. Please create a separate build directory.")
 endif()
 
-# Find DIM
-set(DIM_ROOT "" CACHE PATH "Root directory of DIM library")
+find_library(DIM_LIBRARY NAMES dim REQUIRED)
 
-# Optionally add include and lib directories from DIM_ROOT
-if(DIM_ROOT)
-    set(CMAKE_INCLUDE_PATH ${CMAKE_INCLUDE_PATH} "${DIM_ROOT}/dim")
-    set(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} "${DIM_ROOT}/linux")
+if(NOT DIM_LIBRARY)
+    message(FATAL_ERROR "DIM library not found. Please install DIM library and try again.")
+else()
+    message(STATUS "DIM library found: ${DIM_LIBRARY}")
 endif()
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -26,5 +25,7 @@ add_executable(fred-tester
 )
 
 target_include_directories(fred-tester PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include/)
-target_include_directories(fred-tester PUBLIC /usr/local/include/dim/)
+target_include_directories(fred-tester PUBLIC /opt/dim/dim)
+
+target_link_libraries(fred-tester ${DIM_LIBRARY} pthread)
 

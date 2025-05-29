@@ -84,9 +84,8 @@ class TopicHandler {
             return std::nullopt;
         }
 
-        if (!m_res.is_error)
+        if (m_res.is_error && expect_error || !m_res.is_error && !expect_error)
             return m_res.message;
-
         Logger::error(m_name, "{}", m_res.message);
         return std::nullopt;
     }

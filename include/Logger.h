@@ -27,7 +27,7 @@ class Logger {
     ) {
         return log(
             std::format(
-                "D [{}] {}",
+                "\033[34mD [{}] {}\033[0m",
                 name,
                 std::format(fmt, std::forward<Args>(args)...)
             )
@@ -42,7 +42,7 @@ class Logger {
     ) {
         return log(
             std::format(
-                "I [{}] {}",
+                "\033[32mI [{}] {}\033[0m",
                 name,
                 std::format(fmt, std::forward<Args>(args)...)
             )
@@ -57,7 +57,7 @@ class Logger {
     ) {
         return log(
             std::format(
-                "W [{}] {}",
+                "\033[33mW [{}] {}\033[0m",
                 name,
                 std::format(fmt, std::forward<Args>(args)...)
             )
@@ -72,7 +72,7 @@ class Logger {
     ) {
         return log(
             std::format(
-                "E [{}] {}",
+                "\033[31mE [{}] {}\033[0m",
                 name,
                 std::format(fmt, std::forward<Args>(args)...)
             )
