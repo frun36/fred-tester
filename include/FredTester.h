@@ -1,14 +1,15 @@
 #pragma once
 
+#include <cstdint>
 #include <string>
 #include <vector>
 
 class FredTester {
-    std::vector<std::string> m_tests;
+  private:
+    std::string m_fred_name;
+    std::vector<uint8_t> m_pm_a;
+    std::vector<uint8_t> m_pm_c;
 
   public:
-    explicit FredTester(std::vector<std::string> m_tests) :
-        m_tests(std::move(m_tests)) {}
-
     void run();
 };
