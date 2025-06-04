@@ -1,56 +1,82 @@
 #pragma once
 
+#include <functional>
 #include <regex>
 #include <string>
 
 #include "Logger.h"
 #include "MapiHandler.h"
+#include "Pattern.h"
 
 struct Test {
     Test(
-        std::string test_name,
+        std::string testName,
         MapiHandler& mapi,
         std::string command,
         double timeout,
-        bool is_error,
-        std::string pattern,
-        std::function<bool(std::smatch)> value_validator
+        bool isError,
+        Pattern pattern,
+        std::function<bool(void)> valueValidator
     ) :
-        test_name(std::move(test_name)),
+        testName(std::move(testName)),
         mapi(mapi),
         command(std::move(command)),
         timeout(timeout),
-        is_error(is_error),
+        isError(isError),
         pattern(std::move(pattern)),
-        value_validator(std::move(value_validator)) {}
+        valueValidator(std::move(valueValidator)) {}
 
-    std::string test_name;
+    std::string testName;
     MapiHandler& mapi;
     std::string command;
     double timeout;
-    bool is_error;
-    std::string pattern;
-    std::function<bool(std::smatch)> value_validator;
+    bool isError;
+    Pattern pattern;
+    std::function<bool(void)> valueValidator;
 
     void run() {
-        auto response = mapi.handle_command(command, timeout, is_error);
+        auto response = mapi.handleCommand(command, timeout, isError);
 
         if (!response) {
-            Logger::error(test_name, "Unexpected {}: {}", (is_error ? "success" : "error"), response.error());
+            Logger::error(
+                testName,
+                "Unexpected {}: {}",
+                (isError ? "success" : "error"),
+                response.error()
+            );
             return;
         }
 
-        std::regex re(pattern);
-        std::smatch match;
-
-        if (!std::regex_match(*response, match, re)) {
-            Logger::error(test_name, "Invalid response");
+        if (!pattern.fullMatch(*response)) {
+            Logger::error(testName, "Invalid response");
         }
 
-        if (value_validator != nullptr && !value_validator(std::move(match))) {
-            Logger::error(test_name, "Invalid value");
+        if (valueValidator != nullptr) {
+            pattern.parseValues();
+            if (!valueValidator()) {
+                Logger::error(testName, "Invalid value in response");
+            }
         }
 
-        Logger::info(test_name, "Success");
+        Logger::info(testName, "Success");
+    }
+};
+
+struct LaserPattern: public Test {
+    double value;
+
+    LaserPattern(MapiHandler& m) :
+        Test(
+            "LaserPattern",
+            m,
+            "LASER_PATTERN_MSB,WRITE,0x0F",
+            1.0,
+            false,
+            PatternBuilder("LASER_PATTERN_MSB,{}").flt(&value).build(),
+            std::bind(&LaserPattern::valueValidator, this)
+        ) {}
+
+    bool valueValidator() const {
+        return value == 15;
     }
 };

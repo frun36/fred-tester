@@ -22,10 +22,12 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 add_executable(fred-tester
     src/main.cpp
     src/FredTester.cpp
+    src/Pattern.cpp
 )
 
 target_include_directories(fred-tester PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include/)
 target_include_directories(fred-tester PUBLIC /opt/dim/dim)
+target_include_directories(fred-tester PUBLIC /usr/local/include/dim)
 
 target_link_libraries(fred-tester ${DIM_LIBRARY} pthread)
 

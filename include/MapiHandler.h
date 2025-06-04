@@ -17,34 +17,34 @@ class MapiHandler {
         std::mutex mtx;
         std::condition_variable cv;
         std::string contents;
-        bool is_ready;
-        bool is_error;
-        bool is_handled;
+        bool isReady;
+        bool isError;
+        bool isHandled;
     };
 
     struct MapiInfo: public DimUpdatedInfo {
         // memory leak after strdup, not a big deal here
-        MapiInfo(std::string name, CommonResult& res, bool is_error) :
+        MapiInfo(std::string name, CommonResult& res, bool isError) :
             DimUpdatedInfo(strdup(name.c_str()), -1),
             name(name),
             res(res),
-            is_error(is_error) {}
+            isError(isError) {}
 
         std::string name;
         CommonResult& res;
-        bool is_error;
+        bool isError;
 
         void infoHandler() override {
             std::lock_guard<std::mutex> lock(res.mtx);
             Logger::debug(name, "Received: {}", getString());
-            if (res.is_handled) {
+            if (res.isHandled) {
                 Logger::warning(name, "Unexpected response: {}", getString());
                 return;
             }
             res.contents = getString();
-            res.is_ready = true;
-            res.is_error = is_error;
-            res.is_handled = true;
+            res.isReady = true;
+            res.isError = isError;
+            res.isHandled = true;
             res.cv.notify_one();
         }
     };
@@ -62,17 +62,17 @@ class MapiHandler {
         m_ans(name + "_ANS", m_res, false),
         m_err(name + "_ERR", m_res, true) {}
 
-    std::expected<std::string, std::string> handle_command(
+    std::expected<std::string, std::string> handleCommand(
         std::string command,
         double timeout,
-        bool expect_error = false
+        bool expectError = false
     ) {
         {
             std::lock_guard<std::mutex> lock(m_res.mtx);
-            m_res.is_ready = false;
-            m_res.is_handled = false;
+            m_res.isReady = false;
+            m_res.isHandled = false;
             m_res.contents.clear();
-            m_res.is_error = false;
+            m_res.isError = false;
         }
         DimClient::sendCommand(m_req.c_str(), command.c_str());
 
@@ -82,13 +82,13 @@ class MapiHandler {
         if (!m_res.cv.wait_for(
                 lock,
                 std::chrono::duration<double>(timeout),
-                [&] { return m_res.is_ready; }
+                [&] { return m_res.isReady; }
             )) {
             return std::unexpected("Response timeout");
         }
 
-        if ((m_res.is_error && expect_error)
-            || (!m_res.is_error && !expect_error))
+        if ((m_res.isError && expectError)
+            || (!m_res.isError && !expectError))
             return m_res.contents;
         return std::unexpected(m_res.contents);
     }

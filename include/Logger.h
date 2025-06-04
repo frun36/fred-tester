@@ -5,7 +5,7 @@
 
 class Logger {
   private:
-    static Logger& get_instance() {
+    static Logger& getInstance() {
         static Logger logger;
         return logger;
     }
@@ -16,7 +16,7 @@ class Logger {
 
   public:
     static void log(std::string s) {
-        get_instance().print(s);
+        getInstance().print(s);
     }
 
     template<typename... Args>
