@@ -3,14 +3,14 @@
 
 namespace tests {
 
-class Parameters: public TestSuite {
+class TcmParameters: public TestSuite {
     static Test laserPatternWrite;
     static Test laserPatternRead1;
     static Test laserPatternWriteElectronic;
     static Test laserPatternRead2;
 
   public:
-    Parameters() :
+    TcmParameters() :
         TestSuite(
             {laserPatternWrite,
              laserPatternRead1,
@@ -18,5 +18,7 @@ class Parameters: public TestSuite {
              laserPatternRead2}
         ) {}
 };
+
+class PmParameters: public TestSuite {};
 
 } // namespace tests

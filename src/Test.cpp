@@ -1,7 +1,5 @@
 #include "Test.h"
 
-std::unordered_map<std::string, std::shared_ptr<MapiHandler>> Test::Handlers;
-
 Test::Test(
     std::string testName,
     std::shared_ptr<MapiHandler> mapi,
@@ -9,7 +7,7 @@ Test::Test(
     double timeout,
     bool isError,
     std::string pattern,
-    std::function<bool(const std::smatch&)> valueValidator
+    ValueValidator valueValidator
 ) :
     testName(std::move(testName)),
     mapi(mapi),
@@ -20,15 +18,19 @@ Test::Test(
     valueValidator(std::move(valueValidator)) {}
 
 void Test::run() {
-    auto response = mapi->handleCommand(command, timeout, isError);
+    auto response = mapi->handleCommandWithResponse(command, timeout, isError);
 
     if (!response) {
-        Logger::error(
-            testName,
-            "Unexpected {}: {}",
-            (isError ? "success" : "error"),
-            response.error()
-        );
+        if (response.error() == "RESPONSE_TIMEOUT") {
+            Logger::error(testName, "Timeout when waiting for response");
+        } else {
+            Logger::error(
+                testName,
+                "Unexpected {}: {}",
+                (isError ? "success" : "error"),
+                response.error()
+            );
+        }
         return;
     }
 
@@ -40,8 +42,9 @@ void Test::run() {
     }
 
     if (valueValidator != nullptr) {
-        if (!valueValidator(match)) {
-            Logger::error(testName, "Invalid value in response");
+        auto val = valueValidator(std::move(match));
+        if (!val) {
+            Logger::error(testName, "Value validation failed: {}", val.error());
         }
     }
 
@@ -73,9 +76,7 @@ TestBuilder& TestBuilder::expectOk() {
     return *this;
 }
 
-TestBuilder& TestBuilder::withValueValidator(
-    std::function<bool(const std::smatch&)> valueValidator
-) {
+TestBuilder& TestBuilder::withValueValidator(ValueValidator valueValidator) {
     m_valueValidator = valueValidator;
     return *this;
 }
@@ -86,16 +87,9 @@ TestBuilder& TestBuilder::withoutValueValidator() {
 }
 
 Test TestBuilder::build() const {
-    if (!Test::Handlers.contains(m_mapiName)) {
-        Test::Handlers.insert_or_assign(
-            m_mapiName,
-            std::make_shared<MapiHandler>(m_mapiName)
-        );
-    }
-    std::shared_ptr<MapiHandler> mapiHandler = Test::Handlers.at(m_mapiName);
     return Test(
         m_name,
-        mapiHandler,
+        MapiHandler::get(m_mapiName),
         m_command,
         m_timeout,
         m_expectError,
