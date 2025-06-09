@@ -19,6 +19,8 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
+add_compile_options(-g -Wall -Wextra -Wpedantic)
+
 add_executable(fred-tester
     src/main.cpp
     src/Test.cpp

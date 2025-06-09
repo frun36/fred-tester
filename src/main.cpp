@@ -2,7 +2,10 @@
 #include "tests/Parameters.h"
 #include "tests/Status.h"
 
-int main(void) {
+int main(int argc, char** argv) {
+    if (argc >= 2 && strcmp(argv[1], "-v") == 0) {
+        Logger::setDebug(true);
+    }
     tests::Status status;
     status.start();
 

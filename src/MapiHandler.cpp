@@ -1,8 +1,5 @@
 #include "MapiHandler.h"
 
-std::unordered_map<std::string, std::shared_ptr<MapiHandler>>
-    MapiHandler::Handlers;
-
 // memory leak after strdup, not a big deal here
 MapiHandler::MapiInfo::MapiInfo(
     std::string name,
@@ -17,14 +14,9 @@ MapiHandler::MapiInfo::MapiInfo(
 void MapiHandler::MapiInfo::infoHandler() {
     std::lock_guard<std::mutex> lock(res.mtx);
     Logger::debug(name, "Received: {}", getString());
-    if (res.isHandled) {
-        Logger::warning(name, "Unexpected response: {}", getString());
-        return;
-    }
     res.contents = getString();
     res.isReady = true;
     res.isError = isError;
-    res.isHandled = true;
     res.cv.notify_one();
 }
 
@@ -44,10 +36,14 @@ std::expected<std::string, std::string> MapiHandler::handleResponse(
         })) {
         return std::unexpected("RESPONSE_TIMEOUT");
     }
+    std::string contents = std::move(m_res.contents);
+    bool isError = m_res.isError;
 
-    if ((m_res.isError && expectError) || (!m_res.isError && !expectError))
-        return m_res.contents;
-    return std::unexpected(m_res.contents);
+    m_res.reset();
+
+    if ((isError && expectError) || (!isError && !expectError))
+        return contents;
+    return std::unexpected(contents);
 }
 
 std::expected<std::string, std::string> MapiHandler::handleCommandWithResponse(
@@ -56,11 +52,8 @@ std::expected<std::string, std::string> MapiHandler::handleCommandWithResponse(
     bool expectError
 ) {
     {
-        std::lock_guard<std::mutex> lock(m_res.mtx);
-        m_res.isReady = false;
-        m_res.isHandled = false;
-        m_res.contents.clear();
-        m_res.isError = false;
+        std::unique_lock<std::mutex> lock(m_res.mtx);
+        m_res.reset();
     }
     DimClient::sendCommand(m_req.c_str(), command.c_str());
 
@@ -70,6 +63,8 @@ std::expected<std::string, std::string> MapiHandler::handleCommandWithResponse(
 }
 
 std::shared_ptr<MapiHandler> MapiHandler::get(const std::string& mapiName) {
+    static std::unordered_map<std::string, std::shared_ptr<MapiHandler>>
+        Handlers;
     if (!Handlers.contains(mapiName)) {
         Handlers.insert_or_assign(
             mapiName,

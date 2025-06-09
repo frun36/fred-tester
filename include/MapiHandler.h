@@ -19,9 +19,14 @@ class MapiHandler {
         std::mutex mtx;
         std::condition_variable cv;
         std::string contents;
-        bool isReady;
-        bool isError;
-        bool isHandled;
+        bool isReady = false;
+        bool isError = false;
+
+        void reset() {
+            isReady = false;
+            contents.clear();
+            isError = false;
+        }
     };
 
     struct MapiInfo: public DimUpdatedInfo {
@@ -55,8 +60,4 @@ class MapiHandler {
     );
 
     static std::shared_ptr<MapiHandler> get(const std::string& mapiName);
-
-  private:
-    static std::unordered_map<std::string, std::shared_ptr<MapiHandler>>
-        Handlers;
 };

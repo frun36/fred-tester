@@ -55,6 +55,8 @@ void TrackingTest::resetStats() {
 
 void TrackingTest::updateStats(double elapsed) {
     count++;
+    if (count == 1)
+        return; // First time measurement is unreliable
     // Welford's algorithm
     double delta = elapsed - mean;
     mean += delta / count;
@@ -80,6 +82,24 @@ void TrackingTest::loop() {
             continue;
         }
 
+        std::regex re(pattern);
+        std::smatch match;
+
+        if (!std::regex_match(*response, match, re)) {
+            Logger::error(testName, "Invalid response");
+        }
+
+        if (valueValidator != nullptr) {
+            auto val = valueValidator(std::move(match));
+            if (!val) {
+                Logger::error(
+                    testName,
+                    "Value validation failed: {}",
+                    val.error()
+                );
+            }
+        }
+
         auto now = std::chrono::steady_clock::now();
         std::chrono::duration<double> elapsed = now - lastTime;
         updateStats(elapsed.count());
@@ -91,5 +111,7 @@ void TrackingTest::loop() {
             mean,
             stddev
         );
+
+        lastTime = now;
     }
 }
