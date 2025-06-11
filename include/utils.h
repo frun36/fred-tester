@@ -17,7 +17,7 @@ static inline Result<double> parseDouble(const std::string& s) {
     try {
         return std::stod(s);
     } catch (const std::exception& e) {
-        return Error("Failed to parse double: {}", e.what());
+        return err("Failed to parse double: {}", e.what());
     }
 }
 
@@ -25,7 +25,7 @@ static inline Result<long> parseInt(const std::string& s) {
     try {
         return std::stol(s);
     } catch (const std::exception& e) {
-        return Error("Failed to parse int: {}", e.what());
+        return err("Failed to parse int: {}", e.what());
     }
 }
 
@@ -82,6 +82,21 @@ static inline std::string shorten(
     }
 
     return out;
+}
+
+static inline std::string type(std::string boardName) {
+    if (boardName == "TCM0") {
+        return "TCM";
+    } else if (boardName.substr(0, 2) == "PM") {
+        return "PM";
+    } else {
+        throw std::runtime_error("Invalid boardName");
+    }
+}
+
+static inline std::string topic(std::string boardName, std::string topicName) {
+    std::string boardType = type(boardName);
+    return std::format("FRED/{}/{}/{}", boardType, boardName, topicName);
 }
 
 } // namespace utils

@@ -8,7 +8,7 @@ template<typename T>
 using Result = std::expected<T, std::string>;
 
 template<typename... Args>
-inline std::unexpected<std::string> Error(
+static inline std::unexpected<std::string> err(
     const std::format_string<Args...>& fmt,
     Args&&... args
 ) {

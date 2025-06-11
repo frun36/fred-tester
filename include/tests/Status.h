@@ -13,7 +13,7 @@ class Status: public TrackingTest {
     Status() :
         TrackingTest(
             "STATUS tracker",
-            MapiHandler::get(Topic("TCM0", "STATUS")),
+            MapiHandler::get(topic("TCM0", "STATUS")),
             1.0,
             std::format(
                 R"((?:(?!IS_BOARD_OK,){},{}\n)*IS_BOARD_OK,({})\n)", // only matching group - after IS_BOARD_OK
@@ -24,7 +24,7 @@ class Status: public TrackingTest {
             [](auto match) -> Result<void> {
                 double val = std::stod(match[1]);
                 if (val != 1.)
-                    return Error("IS_BOARD_OK = {}", val);
+                    return err("IS_BOARD_OK = {}", val);
                 else
                     return {};
             }

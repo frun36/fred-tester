@@ -1,7 +1,7 @@
 #pragma once
 
-#include <array>
 #include <chrono>
+#include <cstddef>
 
 #include "Result.h"
 #include "TrackingTest.h"
@@ -9,7 +9,7 @@
 
 namespace tests {
 
-class TcmCounterRates: public TrackingTest {
+class CounterRates: public TrackingTest {
     struct Response {
         Response() = default;
 
@@ -41,13 +41,14 @@ class TcmCounterRates: public TrackingTest {
             return !rates.empty();
         }
 
-        static Result<Response> fromMatch(std::smatch match);
+        static Result<Response> fromMatch(std::smatch match, size_t numberOfCounters);
     };
 
     struct ValueTracker {
-        std::string m_testName;
-        std::array<utils::Welford, 15> counters;
-        std::array<utils::Welford, 15> rates;
+        std::string testName;
+        size_t numberOfCounters;
+
+        std::vector<utils::Welford> rates;
         utils::Welford elapsed;
         utils::Welford newValuesInterval;
 
@@ -55,15 +56,16 @@ class TcmCounterRates: public TrackingTest {
             std::chrono::steady_clock::now();
 
         Result<void> operator()(std::smatch match);
-        std::string summary() const;
 
-        ValueTracker(std::string testName);
+        ValueTracker(std::string testName, size_t numberOfCounters);
     };
 
     ValueTracker m_valueTracker;
+    static const std::string TcmPattern;
+    static const std::string PmPattern;
 
   public:
-    TcmCounterRates();
+    CounterRates(std::string boardName);
 
     void logSummary() const;
 };

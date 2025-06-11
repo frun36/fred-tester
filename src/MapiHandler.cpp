@@ -78,14 +78,3 @@ std::shared_ptr<MapiHandler> MapiHandler::get(const std::string& mapiName) {
     return Handlers.at(mapiName);
 }
 
-std::string Topic(std::string boardName, std::string topicName) {
-    std::string boardType;
-    if (boardName == "TCM0") {
-        boardType = "TCM";
-    } else if (boardName.substr(0, 2) == "PM") {
-        boardType = "PM";
-    } else {
-        throw std::runtime_error("Invalid boardName");
-    }
-    return std::format("FRED/{}/{}/{}", boardType, boardName, topicName);
-}

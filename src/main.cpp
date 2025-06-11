@@ -1,9 +1,9 @@
 #include <thread>
 
 #include "tests/Configurations.h"
+#include "tests/CounterRates.h"
 #include "tests/Parameters.h"
 #include "tests/Status.h"
-#include "tests/TcmCounterRates.h"
 
 int main(int argc, char** argv) {
     if (argc >= 2 && strcmp(argv[1], "-v") == 0) {
@@ -12,7 +12,8 @@ int main(int argc, char** argv) {
 
     tests::Configurations configurations("laser_1124hz_or_trg");
     tests::Status status;
-    tests::TcmCounterRates tcmCounterRates;
+    tests::CounterRates tcmCounterRates("TCM0");
+    tests::CounterRates pmCounterRates("PMA0");
     tests::TcmParameters parameters;
 
     configurations.run();
@@ -22,6 +23,7 @@ int main(int argc, char** argv) {
     std::this_thread::sleep_for(std::chrono::duration<double>(2.));
 
     tcmCounterRates.start();
+    pmCounterRates.start();
 
     std::this_thread::sleep_for(std::chrono::duration<double>(15.));
 
@@ -32,4 +34,7 @@ int main(int argc, char** argv) {
     status.stop();
     tcmCounterRates.stop();
     tcmCounterRates.logSummary();
+
+    pmCounterRates.stop();
+    pmCounterRates.logSummary();
 }
