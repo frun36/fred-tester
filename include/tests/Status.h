@@ -1,8 +1,10 @@
 #include <format>
 
 #include "MapiHandler.h"
-#include "Test.h"
 #include "TrackingTest.h"
+#include "utils.h"
+
+using namespace utils;
 
 namespace tests {
 
@@ -11,7 +13,7 @@ class Status: public TrackingTest {
     Status() :
         TrackingTest(
             "STATUS tracker",
-            MapiHandler::get("FRED/TCM/TCM0/STATUS"),
+            MapiHandler::get(Topic("TCM0", "STATUS")),
             1.0,
             std::format(
                 R"((?:(?!IS_BOARD_OK,){},{}\n)*IS_BOARD_OK,({})\n)", // only matching group - after IS_BOARD_OK

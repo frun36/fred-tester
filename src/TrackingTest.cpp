@@ -13,68 +13,50 @@ TrackingTest::TrackingTest(
     std::string pattern,
     ValueValidator valueValidator
 ) :
-    testName(testName),
-    mapi(mapi),
-    expectedInterval(expectedInterval),
-    pattern(pattern),
-    valueValidator(valueValidator) {}
+    m_testName(testName),
+    m_mapi(mapi),
+    m_expectedInterval(expectedInterval),
+    m_pattern(pattern),
+    m_valueValidator(valueValidator) {}
 
 void TrackingTest::start() {
-    if (running.load())
+    if (m_running.load())
         return;
 
-    stopFlag = false;
-    worker = std::thread(&TrackingTest::loop, this);
-    running = true;
-    Logger::info(testName, "Started tracking");
+    m_stopFlag = false;
+    m_worker = std::thread(&TrackingTest::loop, this);
+    m_running = true;
+    Logger::info(m_testName, "Started tracking");
 }
 
 void TrackingTest::stop() {
-    if (!running.load())
+    if (!m_running.load())
         return;
 
-    stopFlag = true;
-    if (worker.joinable()) {
-        worker.join();
+    m_stopFlag = true;
+    if (m_worker.joinable()) {
+        m_worker.join();
     }
-    running = false;
+    m_running = false;
     Logger::info(
-        testName,
+        m_testName,
         "Finished tracking | mean {:.3f} | stddev {:.3f}",
-        mean,
-        stddev
+        m_stats.mean(),
+        m_stats.stddev()
     );
-}
-
-void TrackingTest::resetStats() {
-    count = 0;
-    mean = 0.;
-    m2 = 0.;
-    stddev = 0.;
-}
-
-void TrackingTest::updateStats(double elapsed) {
-    count++;
-    if (count == 1)
-        return; // First time measurement is unreliable
-    // Welford's algorithm
-    double delta = elapsed - mean;
-    mean += delta / count;
-    m2 += delta * (elapsed - mean);
-    stddev = (count > 1) ? std::sqrt(m2 / (count - 1)) : 0.0;
 }
 
 void TrackingTest::loop() {
     auto lastTime = std::chrono::steady_clock::now();
-    resetStats();
-    while (!stopFlag.load()) {
-        auto response = mapi->handleResponse(expectedInterval * 2);
+    m_stats.reset();
+    while (!m_stopFlag.load()) {
+        auto response = m_mapi->handleResponse(m_expectedInterval * 2);
         if (!response) {
             if (response.error() == "RESPONSE_TIMEOUT") {
-                Logger::error(testName, "Timeout when waiting for response");
+                Logger::error(m_testName, "Timeout when waiting for response");
             } else {
                 Logger::error(
-                    testName,
+                    m_testName,
                     "Unexpected error: {}",
                     response.error()
                 );
@@ -82,18 +64,18 @@ void TrackingTest::loop() {
             continue;
         }
 
-        std::regex re(pattern);
+        std::regex re(m_pattern);
         std::smatch match;
 
         if (!std::regex_match(*response, match, re)) {
-            Logger::error(testName, "Invalid response");
+            Logger::error(m_testName, "Invalid response");
         }
 
-        if (valueValidator != nullptr) {
-            auto val = valueValidator(std::move(match));
+        if (m_valueValidator != nullptr) {
+            auto val = m_valueValidator(std::move(match));
             if (!val) {
                 Logger::error(
-                    testName,
+                    m_testName,
                     "Value validation failed: {}",
                     val.error()
                 );
@@ -102,14 +84,14 @@ void TrackingTest::loop() {
 
         auto now = std::chrono::steady_clock::now();
         std::chrono::duration<double> elapsed = now - lastTime;
-        updateStats(elapsed.count());
+        m_stats.tick(elapsed.count());
 
         Logger::debug(
-            testName,
+            m_testName,
             "Interval: {:.3f}s | mean {:.3f} | stddev {:.3f}",
             elapsed.count(),
-            mean,
-            stddev
+            m_stats.mean(),
+            m_stats.stddev()
         );
 
         lastTime = now;

@@ -24,9 +24,10 @@ add_compile_options(-g -Wall -Wextra -Wpedantic)
 add_executable(fred-tester
     src/main.cpp
     src/Test.cpp
-    src/tests/Parameters.cpp
     src/MapiHandler.cpp
     src/TrackingTest.cpp
+    src/tests/Parameters.cpp
+    src/tests/TcmCounterRates.cpp
 )
 
 target_include_directories(fred-tester PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include/)

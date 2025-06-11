@@ -3,14 +3,17 @@
 #include <string>
 
 #include "Test.h"
+#include "utils.h"
+
+using namespace utils;
 
 namespace tests {
 
 Test TcmParameters::laserPatternWrite =
     TestBuilder("Laser pattern write")
-        .mapiName("FRED/TCM/TCM0/PARAMETERS")
-        .command("LASER_PATTERN_MSB,WRITE,0x0F")
-        .pattern(R"(LASER_PATTERN_MSB,({})\n)", FLT)
+        .mapiName(Topic("TCM0", "PARAMETERS"))
+        .command("GBT_EMULATED_TRIGGERS_PATTERN_LSB,WRITE,0x0F")
+        .pattern(R"(GBT_EMULATED_TRIGGERS_PATTERN_LSB,({})\n)", FLT)
         .withValueValidator([](auto match) -> Result<void> {
             if (std::stod(match[1]) == 15) {
                 return {};
@@ -24,9 +27,9 @@ Test TcmParameters::laserPatternWrite =
 
 Test TcmParameters::laserPatternRead1 =
     TestBuilder("Laser pattern read")
-        .mapiName("FRED/TCM/TCM0/PARAMETERS")
-        .command("LASER_PATTERN_MSB,READ")
-        .pattern(R"(LASER_PATTERN_MSB,({})\n)", FLT)
+        .mapiName(Topic("TCM0", "PARAMETERS"))
+        .command("GBT_EMULATED_TRIGGERS_PATTERN_LSB,READ")
+        .pattern(R"(GBT_EMULATED_TRIGGERS_PATTERN_LSB,({})\n)", FLT)
         .withValueValidator([](auto match) -> Result<void> {
             if (std::stod(match[1]) == 15) {
                 return {};
@@ -40,9 +43,9 @@ Test TcmParameters::laserPatternRead1 =
 
 Test TcmParameters::laserPatternWriteElectronic =
     TestBuilder("Laser pattern write electronic")
-        .mapiName("FRED/TCM/TCM0/PARAMETERS")
-        .command("LASER_PATTERN_MSB,WRITE,0xFF")
-        .pattern(R"(LASER_PATTERN_MSB,({})\n)", FLT)
+        .mapiName(Topic("TCM0", "PARAMETERS"))
+        .command("GBT_EMULATED_TRIGGERS_PATTERN_LSB,WRITE,0xFF")
+        .pattern(R"(GBT_EMULATED_TRIGGERS_PATTERN_LSB,({})\n)", FLT)
         .withValueValidator([](auto match) -> Result<void> {
             if (std::stod(match[1]) == 255) {
                 return {};
@@ -56,9 +59,9 @@ Test TcmParameters::laserPatternWriteElectronic =
 
 Test TcmParameters::laserPatternRead2 =
     TestBuilder("Laser pattern read")
-        .mapiName("FRED/TCM/TCM0/PARAMETERS")
-        .command("LASER_PATTERN_MSB,READ")
-        .pattern(R"(LASER_PATTERN_MSB,({})\n)", FLT)
+        .mapiName(Topic("TCM0", "PARAMETERS"))
+        .command("GBT_EMULATED_TRIGGERS_PATTERN_LSB,READ")
+        .pattern(R"(GBT_EMULATED_TRIGGERS_PATTERN_LSB,({})\n)", FLT)
         .withValueValidator([](auto match) -> Result<void> {
             if (std::stod(match[1]) == 255) {
                 return {};

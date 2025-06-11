@@ -2,30 +2,25 @@
 
 #include <atomic>
 #include <memory>
-#include <regex>
 #include <string>
 
 #include "MapiHandler.h"
 #include "Test.h"
+#include "utils.h"
 
 class TrackingTest {
-  private:
-    std::string testName;
-    std::shared_ptr<MapiHandler> mapi;
-    double expectedInterval;
-    std::string pattern;
-    ValueValidator valueValidator;
+  protected:
+    std::string m_testName;
+    std::shared_ptr<MapiHandler> m_mapi;
+    double m_expectedInterval;
+    std::string m_pattern;
+    ValueValidator m_valueValidator;
 
-    std::thread worker;
-    std::atomic<bool> running;
-    std::atomic<bool> stopFlag;
+    std::thread m_worker;
+    std::atomic<bool> m_running;
+    std::atomic<bool> m_stopFlag;
 
-    size_t count = 0;
-    double mean = 0;
-    double m2 = 0;
-    double stddev = 0;
-    void resetStats();
-    void updateStats(double elapsed);
+    utils::Welford m_stats;
 
     void loop();
 

@@ -61,3 +61,5 @@ class MapiHandler {
 
     static std::shared_ptr<MapiHandler> get(const std::string& mapiName);
 };
+
+std::string Topic(std::string boardName, std::string topicName);

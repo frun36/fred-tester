@@ -8,11 +8,6 @@
 #include "MapiHandler.h"
 #include "Result.h"
 
-static constexpr std::string_view FLT = R"([+-]?(?:\d+\.\d*|\.\d+|\d+))";
-static constexpr std::string_view DEC = R"([+-]?\d+)";
-static constexpr std::string_view HEX = R"([+-]?0[xX][0-9a-fA-F]+)";
-static constexpr std::string_view STR = R"([^,]+)";
-
 using ValueValidator = std::function<Result<void>(std::smatch)>;
 
 struct Test {
