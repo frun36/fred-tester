@@ -17,7 +17,7 @@ static inline Result<double> parseDouble(const std::string& s) {
     try {
         return std::stod(s);
     } catch (const std::exception& e) {
-        return err("Failed to parse double: {}", e.what());
+        return err("Failed to parse double '{}': {}", s, e.what());
     }
 }
 
@@ -25,7 +25,7 @@ static inline Result<long> parseInt(const std::string& s) {
     try {
         return std::stol(s);
     } catch (const std::exception& e) {
-        return err("Failed to parse int: {}", e.what());
+        return err("Failed to parse int '{}': {}", s, e.what());
     }
 }
 

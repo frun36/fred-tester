@@ -37,7 +37,7 @@ Result<CounterRates::Response> CounterRates::Response::fromMatch(
         return err("Match contains too few matched groups: {}", match.size());
     }
 
-    auto it = match.begin();
+    auto it = match.begin() + 1;
 
     std::string readIntervalState = *it++;
 
