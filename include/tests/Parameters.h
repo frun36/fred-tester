@@ -1,24 +1,85 @@
 #include "Test.h"
 #include "TestSuite.h"
+#include "utils.h"
 
 namespace tests {
 
-class TcmParameters: public TestSuite {
-    static Test laserPatternWrite;
-    static Test laserPatternRead1;
-    static Test laserPatternWriteElectronic;
-    static Test laserPatternRead2;
-
+class Parameters: public TestSuite {
   public:
-    TcmParameters() :
+    Parameters(std::string boardName) :
         TestSuite(
-            {laserPatternWrite,
-             laserPatternRead1,
-             laserPatternWriteElectronic,
-             laserPatternRead2}
+            {TestBuilder(boardName + "write")
+                 .mapiName(utils::topic(boardName, "PARAMETERS"))
+                 .command("GBT_EMULATED_TRIGGERS_PATTERN_LSB,WRITE,0x0F")
+                 .pattern(
+                     R"(GBT_EMULATED_TRIGGERS_PATTERN_LSB,({})\n)",
+                     utils::FLT
+                 )
+                 .withValueValidator([](auto match) -> Result<void> {
+                     if (std::stod(match[1]) == 15) {
+                         return {};
+                     } else {
+                         return err("Read value {}", match[1].str());
+                     }
+                 })
+                 .timeout(0.2)
+                 .expectOk()
+                 .build(),
+
+             TestBuilder(boardName + "read")
+                 .mapiName(utils::topic(boardName, "PARAMETERS"))
+                 .command("GBT_EMULATED_TRIGGERS_PATTERN_LSB,READ")
+                 .pattern(
+                     R"(GBT_EMULATED_TRIGGERS_PATTERN_LSB,({})\n)",
+                     utils::FLT
+                 )
+                 .withValueValidator([](auto match) -> Result<void> {
+                     if (std::stod(match[1]) == 15) {
+                         return {};
+                     } else {
+                         return err("Read value {}", match[1].str());
+                     }
+                 })
+                 .timeout(0.2)
+                 .expectOk()
+                 .build(),
+
+             TestBuilder(boardName + "write electronic")
+                 .mapiName(utils::topic(boardName, "PARAMETERS"))
+                 .command("GBT_EMULATED_TRIGGERS_PATTERN_LSB,WRITE,0xFF")
+                 .pattern(
+                     R"(GBT_EMULATED_TRIGGERS_PATTERN_LSB,({})\n)",
+                     utils::FLT
+                 )
+                 .withValueValidator([](auto match) -> Result<void> {
+                     if (std::stod(match[1]) == 255) {
+                         return {};
+                     } else {
+                         return err("Read value {}", match[1].str());
+                     }
+                 })
+                 .timeout(0.2)
+                 .expectOk()
+                 .build(),
+
+             TestBuilder(boardName + "read")
+                 .mapiName(utils::topic(boardName, "PARAMETERS"))
+                 .command("GBT_EMULATED_TRIGGERS_PATTERN_LSB,READ")
+                 .pattern(
+                     R"(GBT_EMULATED_TRIGGERS_PATTERN_LSB,({})\n)",
+                     utils::FLT
+                 )
+                 .withValueValidator([](auto match) -> Result<void> {
+                     if (std::stod(match[1]) == 255) {
+                         return {};
+                     } else {
+                         return err("Read value {}", match[1].str());
+                     }
+                 })
+                 .timeout(0.2)
+                 .expectOk()
+                 .build()}
         ) {}
 };
-
-class PmParameters: public TestSuite {};
 
 } // namespace tests

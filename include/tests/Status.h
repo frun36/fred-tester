@@ -10,10 +10,10 @@ namespace tests {
 
 class Status: public TrackingTest {
   public:
-    Status() :
+    Status(std::string boardName) :
         TrackingTest(
-            "STATUS tracker",
-            MapiHandler::get(topic("TCM0", "STATUS")),
+            boardName + " STATUS tracker",
+            MapiHandler::get(topic(boardName, "STATUS")),
             1.0,
             std::format(
                 R"((?:(?!IS_BOARD_OK,){},{}\n)*IS_BOARD_OK,({})\n)", // only matching group - after IS_BOARD_OK

@@ -11,14 +11,17 @@ int main(int argc, char** argv) {
     }
 
     tests::Configurations configurations("laser_1124hz_or_trg");
-    tests::Status status;
+    tests::Status tcmStatus("TCM0");
+    tests::Status pmStatus("PMA0");
     tests::CounterRates tcmCounterRates("TCM0");
     tests::CounterRates pmCounterRates("PMA0");
-    tests::TcmParameters parameters;
+    tests::Parameters tcmParameters("TCM0");
+    tests::Parameters pmParameters("PMA0");
 
     configurations.run();
 
-    status.start();
+    tcmStatus.start();
+    pmStatus.start();
 
     std::this_thread::sleep_for(std::chrono::duration<double>(2.));
 
@@ -27,11 +30,15 @@ int main(int argc, char** argv) {
 
     std::this_thread::sleep_for(std::chrono::duration<double>(15.));
 
-    parameters.run();
+    tcmParameters.run();
+    std::this_thread::sleep_for(std::chrono::duration<double>(1.));
+    pmParameters.run();
 
     std::this_thread::sleep_for(std::chrono::duration<double>(15.));
 
-    status.stop();
+    tcmStatus.stop();
+    pmStatus.stop();
+
     tcmCounterRates.stop();
     tcmCounterRates.logSummary();
 
