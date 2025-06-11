@@ -10,7 +10,7 @@ int main(int argc, char** argv) {
         Logger::setDebug(true);
     }
 
-    tests::Configurations configurations("fitlab_laser_1122hz");
+    tests::Configurations configurations("laser_1124hz_or_trg");
     tests::Status status;
     tests::TcmCounterRates tcmCounterRates;
     tests::TcmParameters parameters;
@@ -23,11 +23,11 @@ int main(int argc, char** argv) {
 
     tcmCounterRates.start();
 
-    std::this_thread::sleep_for(std::chrono::duration<double>(3.));
+    std::this_thread::sleep_for(std::chrono::duration<double>(15.));
 
     parameters.run();
 
-    std::this_thread::sleep_for(std::chrono::duration<double>(3.));
+    std::this_thread::sleep_for(std::chrono::duration<double>(15.));
 
     status.stop();
     tcmCounterRates.stop();

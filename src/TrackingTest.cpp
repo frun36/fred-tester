@@ -40,7 +40,7 @@ void TrackingTest::stop() {
     m_running = false;
     Logger::info(
         m_testName,
-        "Finished tracking | mean {:.3f} | stddev {:.3f}",
+        "Finished tracking: interval {:.3f}±{:.3f}s",
         m_stats.mean(),
         m_stats.stddev()
     );
@@ -68,7 +68,7 @@ void TrackingTest::loop() {
         std::smatch match;
 
         if (!std::regex_match(*response, match, re)) {
-            Logger::error(m_testName, "Invalid response");
+            Logger::error(m_testName, "Invalid response: {}", *response);
         }
 
         if (m_valueValidator != nullptr) {

@@ -38,7 +38,7 @@ void Test::run() {
     std::smatch match;
 
     if (!std::regex_match(*response, match, re)) {
-        Logger::error(testName, "Invalid response");
+        Logger::error(testName, "Invalid response: {}", *response);
     }
 
     if (valueValidator != nullptr) {

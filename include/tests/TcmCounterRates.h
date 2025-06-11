@@ -18,6 +18,7 @@ class TcmCounterRates: public TrackingTest {
             double readIntervalSeconds,
             std::string fifoState,
             uint32_t fifoLoad,
+            std::string fifoReadResult,
             std::vector<uint32_t> counters,
             std::vector<double> rates,
             double prevElapsed
@@ -27,6 +28,7 @@ class TcmCounterRates: public TrackingTest {
         double readIntervalSeconds;
         std::string fifoState;
         uint32_t fifoLoad;
+        std::string fifoReadResult;
         std::vector<uint32_t> counters;
         std::vector<double> rates;
         double prevElapsed;
@@ -43,6 +45,7 @@ class TcmCounterRates: public TrackingTest {
     };
 
     struct ValueTracker {
+        std::string m_testName;
         std::array<utils::Welford, 15> counters;
         std::array<utils::Welford, 15> rates;
         utils::Welford elapsed;
@@ -53,6 +56,8 @@ class TcmCounterRates: public TrackingTest {
 
         Result<void> operator()(std::smatch match);
         std::string summary() const;
+
+        ValueTracker(std::string testName);
     };
 
     ValueTracker m_valueTracker;

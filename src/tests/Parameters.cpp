@@ -10,7 +10,7 @@ using namespace utils;
 namespace tests {
 
 Test TcmParameters::laserPatternWrite =
-    TestBuilder("Laser pattern write")
+    TestBuilder("Write")
         .mapiName(Topic("TCM0", "PARAMETERS"))
         .command("GBT_EMULATED_TRIGGERS_PATTERN_LSB,WRITE,0x0F")
         .pattern(R"(GBT_EMULATED_TRIGGERS_PATTERN_LSB,({})\n)", FLT)
@@ -26,7 +26,7 @@ Test TcmParameters::laserPatternWrite =
         .build();
 
 Test TcmParameters::laserPatternRead1 =
-    TestBuilder("Laser pattern read")
+    TestBuilder("Read")
         .mapiName(Topic("TCM0", "PARAMETERS"))
         .command("GBT_EMULATED_TRIGGERS_PATTERN_LSB,READ")
         .pattern(R"(GBT_EMULATED_TRIGGERS_PATTERN_LSB,({})\n)", FLT)
@@ -42,7 +42,7 @@ Test TcmParameters::laserPatternRead1 =
         .build();
 
 Test TcmParameters::laserPatternWriteElectronic =
-    TestBuilder("Laser pattern write electronic")
+    TestBuilder("Write electronic")
         .mapiName(Topic("TCM0", "PARAMETERS"))
         .command("GBT_EMULATED_TRIGGERS_PATTERN_LSB,WRITE,0xFF")
         .pattern(R"(GBT_EMULATED_TRIGGERS_PATTERN_LSB,({})\n)", FLT)
@@ -58,7 +58,7 @@ Test TcmParameters::laserPatternWriteElectronic =
         .build();
 
 Test TcmParameters::laserPatternRead2 =
-    TestBuilder("Laser pattern read")
+    TestBuilder("Read")
         .mapiName(Topic("TCM0", "PARAMETERS"))
         .command("GBT_EMULATED_TRIGGERS_PATTERN_LSB,READ")
         .pattern(R"(GBT_EMULATED_TRIGGERS_PATTERN_LSB,({})\n)", FLT)

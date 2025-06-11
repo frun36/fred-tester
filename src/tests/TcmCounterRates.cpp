@@ -1,5 +1,7 @@
 #include "tests/TcmCounterRates.h"
 
+#include <utility>
+
 #include "Result.h"
 #include "utils.h"
 
@@ -12,6 +14,7 @@ TcmCounterRates::Response::Response(
     double readIntervalSeconds,
     std::string fifoState,
     uint32_t fifoLoad,
+    std::string fifoReadResult,
     std::vector<uint32_t> counters,
     std::vector<double> rates,
     double prevElapsed
@@ -20,6 +23,7 @@ TcmCounterRates::Response::Response(
     readIntervalSeconds(readIntervalSeconds),
     fifoState(std::move(fifoState)),
     fifoLoad(fifoLoad),
+    fifoReadResult(std::move(fifoReadResult)),
     counters(std::move(counters)),
     rates(std::move(rates)),
     prevElapsed(prevElapsed) {}
@@ -69,6 +73,7 @@ Result<TcmCounterRates::Response> TcmCounterRates::Response::fromMatch(
         readIntervalSeconds,
         std::move(fifoState),
         fifoLoad,
+        std::move(fifoReadResult),
         std::move(counters),
         std::move(rates),
         prevElapsed
@@ -81,25 +86,27 @@ TcmCounterRates::TcmCounterRates() :
         MapiHandler::get(Topic("TCM0", "COUNTER_RATES")),
         0.5,
         // clang-format off
-            std::format(
-                R"(READ_INTERVAL,({}),({})\n)" // 1, 2
-                R"(FIFO_STATE,({}),({})\n)" // 3, 4
-                R"(FIFO_READ_RESULT,({})\n)" // 5
-                R"(COUNTERS,({}|-),({}|-),({}|-),({}|-),({}|-),({}|-),({}|-),({}|-),({}|-),({}|-),({}|-),({}|-),({}|-),({}|-),({}|-)\n)" // 6-20
-                R"(RATES,({}|-),({}|-),({}|-),({}|-),({}|-),({}|-),({}|-),({}|-),({}|-),({}|-),({}|-),({}|-),({}|-),({}|-),({}|-)\n)" // 21-35
-                R"(PREV_ELAPSED,({})ms\n)" // 36
-                R"((?:Executed:[^\n]+\n))", // 37
-                STR, FLT,
-                STR, DEC,
-                STR,
-                DEC, DEC, DEC, DEC, DEC, DEC, DEC, DEC, DEC, DEC, DEC, DEC, DEC, DEC, DEC, 
-                FLT, FLT, FLT, FLT, FLT, FLT, FLT, FLT, FLT, FLT, FLT, FLT, FLT, FLT, FLT, 
-                FLT
-            ),
+        std::format(
+            R"(READ_INTERVAL,({}),({})s\n)" // 1, 2
+            R"(FIFO_STATE,({}),({})\n)" // 3, 4
+            R"(FIFO_READ_RESULT,({})\n)" // 5
+            R"(COUNTERS,({}|-),({}|-),({}|-),({}|-),({}|-),({}|-),({}|-),({}|-),({}|-),({}|-),({}|-),({}|-),({}|-),({}|-),({}|-)\n)" // 6-20
+            R"(RATES,({}|-),({}|-),({}|-),({}|-),({}|-),({}|-),({}|-),({}|-),({}|-),({}|-),({}|-),({}|-),({}|-),({}|-),({}|-)\n)" // 21-35
+            R"(PREV_ELAPSED,({})ms\n)" // 36
+            R"(Executed:([^\n]?))", // 37
+            STR, FLT,
+            STR, DEC,
+            STR,
+            DEC, DEC, DEC, DEC, DEC, DEC, DEC, DEC, DEC, DEC, DEC, DEC, DEC, DEC, DEC, 
+            FLT, FLT, FLT, FLT, FLT, FLT, FLT, FLT, FLT, FLT, FLT, FLT, FLT, FLT, FLT, 
+            FLT
+        ),
         // clang-format on
         nullptr
-    ) {
-    m_valueValidator = m_valueTracker; // avoid initialization order problems
+    ),
+    m_valueTracker(m_testName) {
+    m_valueValidator =
+        std::ref(m_valueTracker); // avoid initialization order problems
 }
 
 Result<void> TcmCounterRates::ValueTracker::operator()(std::smatch match) {
@@ -115,7 +122,7 @@ Result<void> TcmCounterRates::ValueTracker::operator()(std::smatch match) {
     }
 
     if (res.fifoState != "SINGLE" && res.fifoState != "MULTIPLE"
-        && res.fifoState != "PARTIAL") {
+        && res.fifoState != "PARTIAL" && res.fifoState != "EMPTY") {
         return Error("Invalid FIFO state: {}", res.fifoState);
     }
 
@@ -123,14 +130,20 @@ Result<void> TcmCounterRates::ValueTracker::operator()(std::smatch match) {
         return Error("No FIFO readout: {}", res.fifoState);
     }
 
-    if (res.fifoState == "SUCCESS") {
+    if (res.fifoReadResult == "SUCCESS") {
         auto now = std::chrono::steady_clock::now();
         std::chrono::duration<double> elapsed = now - lastTime;
         newValuesInterval.tick(elapsed.count());
+        Logger::debug(
+            m_testName,
+            "New rates received, last: {}s ago",
+            elapsed.count()
+        );
         lastTime = now;
     }
 
     if (res.hasRates()) {
+        Logger::debug(m_testName, "Storing new rates");
         for (size_t i = 0; i < 15; i++) {
             rates[i].tick(res.rates[i]);
         }
@@ -143,7 +156,7 @@ Result<void> TcmCounterRates::ValueTracker::operator()(std::smatch match) {
 std::string TcmCounterRates::ValueTracker::summary() const {
     // clang-format off
     return std::format(
-        "Rates: {}±{}, {}±{}, {}±{}, {}±{}, {}±{}, {}±{}, {}±{}, {}±{}, {}±{}, {}±{}, {}±{}, {}±{}, {}±{}, {}±{}, {}±{} | New values interval: {}±{} | Elapsed: {}±{}",
+        "Rates: {:.3f}±{:.3f}, {:.3f}±{:.3f}, {:.3f}±{:.3f}, {:.3f}±{:.3f}, {:.3f}±{:.3f}, {:.3f}±{:.3f}, {:.3f}±{:.3f}, {:.3f}±{:.3f}, {:.3f}±{:.3f}, {:.3f}±{:.3f}, {:.3f}±{:.3f}, {:.3f}±{:.3f}, {:.3f}±{:.3f}, {:.3f}±{:.3f}, {:.3f}±{:.3f} | New values interval: {:.3f}±{:.3f}s | Elapsed: {:.3f}±{:.3f}ms",
         rates[0].mean(), rates[0].stddev(),
         rates[1].mean(), rates[1].stddev(),
         rates[2].mean(), rates[2].stddev(),
@@ -169,4 +182,6 @@ void TcmCounterRates::logSummary() const {
     Logger::info(m_testName, "{}", m_valueTracker.summary());
 }
 
+TcmCounterRates::ValueTracker::ValueTracker(std::string testName) :
+    m_testName(testName) {}
 } // namespace tests
