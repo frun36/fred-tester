@@ -59,4 +59,29 @@ class Welford {
     }
 };
 
+static inline std::string shorten(
+    const std::string& input,
+    size_t maxLen = 512,
+    std::string newlineReplacement = "⏎",
+    std::string ellipsis = "..."
+) {
+    std::string out;
+    if (maxLen != 0 && input.size() > maxLen) {
+        out = input.substr(0, maxLen);
+        out += ellipsis;
+    } else {
+        out = input;
+    }
+
+    if (newlineReplacement != "\n") {
+        size_t pos = 0;
+        while ((pos = out.find('\n', pos)) != std::string::npos) {
+            out.replace(pos, 1, newlineReplacement);
+            pos += newlineReplacement.size();
+        }
+    }
+
+    return out;
+}
+
 } // namespace utils

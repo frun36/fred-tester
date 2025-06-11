@@ -1,5 +1,7 @@
 #include "Test.h"
 
+#include "utils.h"
+
 Test::Test(
     std::string testName,
     std::shared_ptr<MapiHandler> mapi,
@@ -28,7 +30,7 @@ void Test::run() {
                 testName,
                 "Unexpected {}: {}",
                 (isError ? "success" : "error"),
-                response.error()
+                utils::shorten(response.error())
             );
         }
         return;
@@ -38,7 +40,11 @@ void Test::run() {
     std::smatch match;
 
     if (!std::regex_match(*response, match, re)) {
-        Logger::error(testName, "Invalid response: {}", *response);
+        Logger::error(
+            testName,
+            "Invalid response: {}",
+            utils::shorten(*response)
+        );
     }
 
     if (valueValidator != nullptr) {

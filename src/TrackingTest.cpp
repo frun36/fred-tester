@@ -58,7 +58,7 @@ void TrackingTest::loop() {
                 Logger::error(
                     m_testName,
                     "Unexpected error: {}",
-                    response.error()
+                    utils::shorten(response.error())
                 );
             }
             continue;
@@ -68,7 +68,11 @@ void TrackingTest::loop() {
         std::smatch match;
 
         if (!std::regex_match(*response, match, re)) {
-            Logger::error(m_testName, "Invalid response: {}", *response);
+            Logger::error(
+                m_testName,
+                "Invalid response: {}",
+                utils::shorten(*response)
+            );
         }
 
         if (m_valueValidator != nullptr) {

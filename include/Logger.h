@@ -9,11 +9,6 @@ class Logger {
   private:
     std::mutex m_mtx;
     bool m_debug = false;
-    bool m_replaceNewlines = true;
-    bool m_trimInput = true;
-    size_t m_maxLen = 512;
-    std::string m_ellipsis = "...";
-    std::string m_newlineReplacement = "⏎";
 
     static Logger& getInstance() {
         static Logger logger;
@@ -31,19 +26,6 @@ class Logger {
         auto in_time_t = std::chrono::system_clock::to_time_t(now);
         std::tm buf;
         localtime_r(&in_time_t, &buf);
-
-        if (m_trimInput && s.size() > m_maxLen) {
-            s.resize(m_maxLen);
-            s += m_ellipsis;
-        }
-
-        if (m_replaceNewlines) {
-            size_t pos = 0;
-            while ((pos = s.find('\n', pos)) != std::string::npos) {
-                s.replace(pos, 1, m_newlineReplacement);
-                pos += m_newlineReplacement.size(); // move past the replacement
-            }
-        }
 
         std::cout << "\033[2m" << std::put_time(&buf, "%Y-%m-%d %H:%M:%S")
                   << '.' << std::setw(3) << std::setfill('0') << ms.count()

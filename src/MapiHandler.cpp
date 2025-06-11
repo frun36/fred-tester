@@ -1,5 +1,8 @@
 #include "MapiHandler.h"
+
 #include <stdexcept>
+
+#include "utils.h"
 
 // memory leak after strdup, not a big deal here
 MapiHandler::MapiInfo::MapiInfo(
@@ -14,8 +17,8 @@ MapiHandler::MapiInfo::MapiInfo(
 
 void MapiHandler::MapiInfo::infoHandler() {
     std::lock_guard<std::mutex> lock(res.mtx);
-    Logger::debug(name, "Received: {}", getString());
     res.contents = getString();
+    Logger::debug(name, "Received: {}", utils::shorten(res.contents));
     res.isReady = true;
     res.isError = isError;
     res.cv.notify_one();
