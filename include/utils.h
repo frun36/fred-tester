@@ -2,16 +2,18 @@
 
 #include <cmath>
 #include <string>
-#include <string_view>
 
 #include "Result.h"
 
 namespace utils {
 
-static constexpr std::string_view FLT = R"([+-]?(?:\d+\.\d*|\.\d+|\d+))";
-static constexpr std::string_view DEC = R"([+-]?\d+)";
-static constexpr std::string_view HEX = R"([+-]?0[xX][0-9a-fA-F]+)";
-static constexpr std::string_view STR = R"([^,\n]+)";
+static constexpr const char* FLT = R"([+-]?(?:\d+\.\d*|\.\d+|\d+))";
+static constexpr const char* DEC = R"([+-]?\d+)";
+static constexpr const char* HEX = R"([+-]?0[xX][0-9a-fA-F]+)";
+static constexpr const char* STR = R"([^,\n]+)";
+
+static constexpr const char* TCM = "TCM0";
+static constexpr const char* PM = "PMA0";
 
 static inline Result<double> parseDouble(const std::string& s) {
     try {

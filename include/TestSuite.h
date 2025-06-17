@@ -13,7 +13,7 @@ class TestSuite {
 
     void run() {
         for (auto& test : m_tests) {
-            test.run();
+            test.runAndLog();
         }
     }
 };

@@ -29,7 +29,8 @@ struct Test {
     std::string pattern;
     ValueValidator valueValidator;
 
-    void run();
+    Result<void> run();
+    bool runAndLog();
 };
 
 class TestBuilder {

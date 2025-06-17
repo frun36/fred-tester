@@ -20,42 +20,47 @@ Test::Test(
     pattern(std::move(pattern)),
     valueValidator(std::move(valueValidator)) {}
 
-void Test::run() {
+Result<void> Test::run() {
     auto response = mapi->handleCommandWithResponse(command, timeout, isError);
 
     if (!response) {
         if (response.error() == "RESPONSE_TIMEOUT") {
-            Logger::error(testName, "Timeout when waiting for response");
+            return err("Timeout when waiting for response");
         } else {
-            Logger::error(
-                testName,
+            return err(
                 "Unexpected {}: {}",
                 (isError ? "success" : "error"),
                 utils::shorten(response.error())
             );
         }
-        return;
     }
 
     std::regex re(pattern);
     std::smatch match;
 
     if (!std::regex_match(*response, match, re)) {
-        Logger::error(
-            testName,
-            "Invalid response: {}",
-            utils::shorten(*response)
-        );
+        return err("Invalid response: {}", utils::shorten(*response));
     }
 
     if (valueValidator != nullptr) {
         auto val = valueValidator(std::move(match));
         if (!val) {
-            Logger::error(testName, "Value validation failed: {}", val.error());
+            return err("Value validation failed: {}", val.error());
         }
     }
 
-    Logger::info(testName, "Success");
+    return {};
+}
+
+bool Test::runAndLog() {
+    auto res = run();
+    if (res) {
+        Logger::info(testName, "Success");
+        return true;
+    } else {
+        Logger::error(testName, "{}", res.error());
+        return false;
+    }
 }
 
 TestBuilder& TestBuilder::mapiName(std::string mapiName) {
