@@ -7,6 +7,28 @@
 #include "TrackingTest.h"
 #include "utils.h"
 
+// To test:
+// - START
+// - STOP
+// - RESET
+// - change read interval (from parameters)
+//
+// in TCM histograms:
+// - START
+// - STOP
+// - RESET
+// - READ
+// - COUNTER (0 or number)
+//
+// in PM histograms:
+// - START
+// - STOP
+// - RESET
+// - READ
+// - SELECT
+// - HISTOGRAMMING
+// - BCID_FILTER
+
 namespace tests {
 
 class CounterRates: public TrackingTest {
@@ -41,7 +63,11 @@ class CounterRates: public TrackingTest {
             return !rates.empty();
         }
 
-        static Result<Response> fromMatch(std::smatch match, size_t numberOfCounters);
+        static Result<Response> fromMatch(
+            std::string testName,
+            std::smatch match,
+            size_t numberOfCounters
+        );
     };
 
     struct ValueTracker {
@@ -64,10 +90,12 @@ class CounterRates: public TrackingTest {
     static const std::string TcmPattern;
     static const std::string PmPattern;
 
+    void logSummary() const override;
+
   public:
     CounterRates(std::string boardName);
 
-    void logSummary() const;
+    void resetCounters();
 };
 
 } // namespace tests

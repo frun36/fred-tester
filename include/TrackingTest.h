@@ -24,6 +24,10 @@ class TrackingTest {
 
     void loop();
 
+    virtual void logSummary() const {
+        return;
+    }
+
   public:
     TrackingTest(
         std::string testName,
@@ -33,6 +37,6 @@ class TrackingTest {
         ValueValidator valueValidator
     );
 
-    void start();
+    void start(double expectedInterval = -1.);
     void stop();
 };

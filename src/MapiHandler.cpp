@@ -1,7 +1,8 @@
 #include "MapiHandler.h"
 
-#include <stdexcept>
+#include <unordered_map>
 
+#include "Logger.h"
 #include "utils.h"
 
 // memory leak after strdup, not a big deal here
@@ -59,7 +60,7 @@ std::expected<std::string, std::string> MapiHandler::handleCommandWithResponse(
         std::unique_lock<std::mutex> lock(m_res.mtx);
         m_res.reset();
     }
-    DimClient::sendCommand(m_req.c_str(), command.c_str());
+    sendCommand(command);
 
     Logger::debug(m_name, "Sent command: {}", command);
 
@@ -77,4 +78,3 @@ std::shared_ptr<MapiHandler> MapiHandler::get(const std::string& mapiName) {
     }
     return Handlers.at(mapiName);
 }
-

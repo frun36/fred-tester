@@ -1,7 +1,7 @@
 #include "TrackingTest.h"
 
 #include <chrono>
-#include <cmath>
+#include <stdexcept>
 
 #include "Logger.h"
 #include "Test.h"
@@ -17,12 +17,19 @@ TrackingTest::TrackingTest(
     m_mapi(mapi),
     m_expectedInterval(expectedInterval),
     m_pattern(pattern),
-    m_valueValidator(valueValidator) {}
+    m_valueValidator(valueValidator) {
+    if (expectedInterval < 0) {
+        throw std::runtime_error("Invalid expected interval");
+    }
+}
 
-void TrackingTest::start() {
+void TrackingTest::start(double expectedInterval) {
     if (m_running.load())
         return;
 
+    if (expectedInterval > 0) {
+        m_expectedInterval = expectedInterval;
+    }
     m_stopFlag = false;
     m_worker = std::thread(&TrackingTest::loop, this);
     m_running = true;
@@ -44,6 +51,8 @@ void TrackingTest::stop() {
         m_stats.mean(),
         m_stats.stddev()
     );
+
+    logSummary();
 }
 
 void TrackingTest::loop() {

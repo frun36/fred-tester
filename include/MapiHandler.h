@@ -1,16 +1,11 @@
 #pragma once
 
-#include <chrono>
 #include <condition_variable>
-#include <cstring>
 #include <expected>
 #include <memory>
 #include <mutex>
-#include <optional>
 #include <string>
-#include <unordered_map>
 
-#include "Logger.h"
 #include "dic.hxx"
 
 class MapiHandler {
@@ -48,6 +43,14 @@ class MapiHandler {
   public:
     MapiHandler(const std::string& name);
 
+    inline void sendCommand(const std::string& command) {
+        DimClient::sendCommand(m_req.c_str(), command.c_str());
+    }
+
+    static inline void sendCommand(const std::string& mapiName, const std::string& command) {
+        get(mapiName)->sendCommand(command);
+    }
+
     std::expected<std::string, std::string> handleResponse(
         double timeout,
         bool expectError = false
@@ -61,4 +64,3 @@ class MapiHandler {
 
     static std::shared_ptr<MapiHandler> get(const std::string& mapiName);
 };
-

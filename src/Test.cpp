@@ -1,5 +1,6 @@
 #include "Test.h"
 
+#include "Logger.h"
 #include "utils.h"
 
 Test::Test(

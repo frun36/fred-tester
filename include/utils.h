@@ -11,7 +11,7 @@ namespace utils {
 static constexpr std::string_view FLT = R"([+-]?(?:\d+\.\d*|\.\d+|\d+))";
 static constexpr std::string_view DEC = R"([+-]?\d+)";
 static constexpr std::string_view HEX = R"([+-]?0[xX][0-9a-fA-F]+)";
-static constexpr std::string_view STR = R"([^,]+)";
+static constexpr std::string_view STR = R"([^,\n]+)";
 
 static inline Result<double> parseDouble(const std::string& s) {
     try {

@@ -27,6 +27,7 @@ add_executable(fred-tester
     src/MapiHandler.cpp
     src/TrackingTest.cpp
     src/tests/CounterRates.cpp
+    src/tests/FredTester.cpp
 )
 
 target_include_directories(fred-tester PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include/)

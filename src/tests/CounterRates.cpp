@@ -3,6 +3,7 @@
 #include <ranges>
 #include <utility>
 
+#include "Logger.h"
 #include "Result.h"
 #include "utils.h"
 
@@ -30,6 +31,7 @@ CounterRates::Response::Response(
     prevElapsed(prevElapsed) {}
 
 Result<CounterRates::Response> CounterRates::Response::fromMatch(
+    std::string testName,
     std::smatch match,
     size_t numberOfCounters
 ) {
@@ -53,6 +55,7 @@ Result<CounterRates::Response> CounterRates::Response::fromMatch(
 
     std::vector<uint32_t> counters(numberOfCounters);
     if (*it == "-") {
+        Logger::warning(testName, "No counters");
         counters.clear();
     } else {
         for (size_t i = 0; i < numberOfCounters; i++) {
@@ -135,7 +138,7 @@ CounterRates::CounterRates(std::string boardName) :
 
 Result<void> CounterRates::ValueTracker::operator()(std::smatch match) {
     Response res;
-    TRY_ASSIGN(Response::fromMatch(std::move(match), numberOfCounters), res);
+    TRY_ASSIGN(Response::fromMatch(testName, std::move(match), numberOfCounters), res);
 
     if (res.readIntervalState != "OK" || res.readIntervalSeconds != 1.) {
         return err(
@@ -205,4 +208,11 @@ CounterRates::ValueTracker::ValueTracker(
     testName(testName),
     numberOfCounters(numberOfCounters),
     rates(numberOfCounters) {}
+
+void CounterRates::resetCounters() {
+    m_mapi->sendCommand("RESET");
+    Logger::info(m_testName, "Performing reset");
+
+}
+
 } // namespace tests
