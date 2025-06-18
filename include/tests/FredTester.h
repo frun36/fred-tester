@@ -17,13 +17,12 @@ class FredTester {
     Status pmStatus {utils::PM};
     CounterRates tcmCounterRates {utils::TCM};
     CounterRates pmCounterRates {utils::PM};
-    Parameters tcmParameters {utils::TCM};
-    Parameters pmParameters {utils::PM};
 
   public:
     bool setup();
     void changeReadInterval();
     void run();
+    void histograms();
     void finish();
 };
 

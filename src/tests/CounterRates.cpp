@@ -1,5 +1,6 @@
 #include "tests/CounterRates.h"
 
+#include <format>
 #include <ranges>
 #include <utility>
 
@@ -93,15 +94,15 @@ const std::string CounterRates::TcmPattern =
         R"(READ_INTERVAL,({}),({})s\n)" // 1, 2
         R"(FIFO_STATE,({}),({})\n)" // 3, 4
         R"(FIFO_READ_RESULT,({})\n)" // 5
-        R"(COUNTERS,({}|-),({}|-),({}|-),({}|-),({}|-),({}|-),({}|-),({}|-),({}|-),({}|-),({}|-),({}|-),({}|-),({}|-),({}|-)\n)" // 6-20
-        R"(RATES,({}|-),({}|-),({}|-),({}|-),({}|-),({}|-),({}|-),({}|-),({}|-),({}|-),({}|-),({}|-),({}|-),({}|-),({}|-)\n)" // 21-35
+        R"(COUNTERS,{}\n)" // 6-20
+        R"(RATES,{}\n)" // 21-35
         R"(PREV_ELAPSED,({})ms\n)" // 36
         R"(Executed:([^\n]?))", // 37
         STR, FLT,
         STR, DEC,
         STR,
-        DEC, DEC, DEC, DEC, DEC, DEC, DEC, DEC, DEC, DEC, DEC, DEC, DEC, DEC, DEC, 
-        FLT, FLT, FLT, FLT, FLT, FLT, FLT, FLT, FLT, FLT, FLT, FLT, FLT, FLT, FLT, 
+        repeat(std::format("({}|-)", DEC), ",", 15),
+        repeat(std::format("({}|-)", FLT), ",", 15),
         FLT
     );
 
@@ -110,22 +111,22 @@ const std::string CounterRates::PmPattern =
         R"(READ_INTERVAL,({}),({})s\n)" // 1, 2
         R"(FIFO_STATE,({}),({})\n)" // 3, 4
         R"(FIFO_READ_RESULT,({})\n)" // 5
-        R"(COUNTERS,({}|-),({}|-),({}|-),({}|-),({}|-),({}|-),({}|-),({}|-),({}|-),({}|-),({}|-),({}|-),({}|-),({}|-),({}|-),({}|-),({}|-),({}|-),({}|-),({}|-),({}|-),({}|-),({}|-),({}|-)\n)" // 6-29
-        R"(RATES,({}|-),({}|-),({}|-),({}|-),({}|-),({}|-),({}|-),({}|-),({}|-),({}|-),({}|-),({}|-),({}|-),({}|-),({}|-),({}|-),({}|-),({}|-),({}|-),({}|-),({}|-),({}|-),({}|-),({}|-)\n)" // 30-44
+        R"(COUNTERS,{}\n)" // 6-29
+        R"(RATES,{}\n)" // 30-44
         R"(PREV_ELAPSED,({})ms\n)" // 45
         R"(Executed:([^\n]?))", // 46
         STR, FLT,
         STR, DEC,
         STR,
-        DEC, DEC, DEC, DEC, DEC, DEC, DEC, DEC, DEC, DEC, DEC, DEC, DEC, DEC, DEC, DEC, DEC, DEC, DEC, DEC, DEC, DEC, DEC, DEC, 
-        FLT, FLT, FLT, FLT, FLT, FLT, FLT, FLT, FLT, FLT, FLT, FLT, FLT, FLT, FLT, FLT, FLT, FLT, FLT, FLT, FLT, FLT, FLT, FLT, 
+        repeat(std::format("({}|-)", DEC), ",", 24),
+        repeat(std::format("({}|-)", FLT), ",", 24),
         FLT
     );
 // clang-format on
 
 CounterRates::CounterRates(std::string boardName) :
     TrackingTest(
-        boardName + " COUNTER_RATES tracker",
+        boardName + " COUNTER_RATES TRACKER",
         MapiHandler::get(topic(boardName, "COUNTER_RATES")),
         0.5,
         type(boardName) == "TCM" ? TcmPattern : PmPattern,
@@ -138,7 +139,10 @@ CounterRates::CounterRates(std::string boardName) :
 
 Result<void> CounterRates::ValueTracker::operator()(std::smatch match) {
     Response res;
-    TRY_ASSIGN(Response::fromMatch(testName, std::move(match), numberOfCounters), res);
+    TRY_ASSIGN(
+        Response::fromMatch(testName, std::move(match), numberOfCounters),
+        res
+    );
 
     if (res.readIntervalState != "OK" || res.readIntervalSeconds != 1.) {
         return err(
@@ -212,7 +216,6 @@ CounterRates::ValueTracker::ValueTracker(
 void CounterRates::resetCounters() {
     m_mapi->sendCommand("RESET");
     Logger::info(m_testName, "Performing reset");
-
 }
 
 } // namespace tests

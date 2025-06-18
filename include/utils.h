@@ -12,6 +12,24 @@ static constexpr const char* DEC = R"([+-]?\d+)";
 static constexpr const char* HEX = R"([+-]?0[xX][0-9a-fA-F]+)";
 static constexpr const char* STR = R"([^,\n]+)";
 
+static inline std::string repeat(std::string str, std::string sep, size_t n) {
+    if (n == 0)
+        return "";
+
+    size_t i = 0;
+
+    std::string res;
+    res.reserve(n * str.size() + (n - 1) * sep.size());
+    res += str;
+    i++;
+    for (; i < n; i++) {
+        res += sep;
+        res += str;
+    }
+
+    return res;
+}
+
 static constexpr const char* TCM = "TCM0";
 static constexpr const char* PM = "PMA0";
 

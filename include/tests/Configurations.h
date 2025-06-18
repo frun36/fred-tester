@@ -8,7 +8,7 @@ namespace tests {
 class Configurations: public Test {
   public:
     Configurations(std::string configurationName) :
-        Test(TestBuilder("Apply configuration")
+        Test(TestBuilder("APPLY CONFIGURATION")
                  .mapiName(utils::topic("TCM0", "CONFIGURATIONS"))
                  .command(configurationName)
                  .pattern(

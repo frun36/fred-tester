@@ -43,7 +43,9 @@ class TestBuilder {
     ValueValidator m_valueValidator = nullptr;
 
   public:
-    TestBuilder(std::string name) : m_name(name) {}
+    template<typename... Args>
+    TestBuilder(const std::format_string<Args...>& fmt, Args&&... args) :
+        m_name(std::format(fmt, std::forward<Args>(args)...)) {}
 
     TestBuilder& mapiName(std::string mapiName);
     TestBuilder& command(std::string command);

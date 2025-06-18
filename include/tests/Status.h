@@ -12,7 +12,7 @@ class Status: public TrackingTest {
   public:
     Status(std::string boardName) :
         TrackingTest(
-            boardName + " STATUS tracker",
+            boardName + " STATUS TRACKER",
             MapiHandler::get(topic(boardName, "STATUS")),
             1.0,
             std::format(

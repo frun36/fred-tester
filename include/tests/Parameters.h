@@ -8,7 +8,7 @@ class Parameters: public TestSuite {
   public:
     Parameters(std::string boardName) :
         TestSuite(
-            {TestBuilder(boardName + " WRITE")
+            {TestBuilder("{} WRITE", boardName)
                  .mapiName(utils::topic(boardName, "PARAMETERS"))
                  .command("GBT_EMULATED_TRIGGERS_PATTERN_LSB,WRITE,0x0F")
                  .pattern(
@@ -26,7 +26,7 @@ class Parameters: public TestSuite {
                  .expectOk()
                  .build(),
 
-             TestBuilder(boardName + " READ")
+             TestBuilder("{} READ", boardName)
                  .mapiName(utils::topic(boardName, "PARAMETERS"))
                  .command("GBT_EMULATED_TRIGGERS_PATTERN_LSB,READ")
                  .pattern(
@@ -44,7 +44,7 @@ class Parameters: public TestSuite {
                  .expectOk()
                  .build(),
 
-             TestBuilder(boardName + " WRITE_ELECTRONIC")
+             TestBuilder("{} WRITE_ELECTRONIC", boardName)
                  .mapiName(utils::topic(boardName, "PARAMETERS"))
                  .command("GBT_EMULATED_TRIGGERS_PATTERN_LSB,WRITE,0xFF")
                  .pattern(
@@ -62,7 +62,7 @@ class Parameters: public TestSuite {
                  .expectOk()
                  .build(),
 
-             TestBuilder(boardName + " READ")
+             TestBuilder("{} READ", boardName)
                  .mapiName(utils::topic(boardName, "PARAMETERS"))
                  .command("GBT_EMULATED_TRIGGERS_PATTERN_LSB,READ")
                  .pattern(
