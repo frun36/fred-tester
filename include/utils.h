@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cmath>
+#include <iostream>
 #include <string>
 
 #include "Result.h"
@@ -9,7 +10,7 @@ namespace utils {
 
 static constexpr const char* FLT = R"([+-]?(?:\d+\.\d*|\.\d+|\d+))";
 static constexpr const char* DEC = R"([+-]?\d+)";
-static constexpr const char* HEX = R"([+-]?0[xX][0-9a-fA-F]+)";
+static constexpr const char* HEX = R"([+-]?(?:0[xX])?[0-9a-fA-F]+)";
 static constexpr const char* STR = R"([^,\n]+)";
 
 static inline std::string repeat(std::string str, std::string sep, size_t n) {

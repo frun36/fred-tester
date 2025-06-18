@@ -19,7 +19,7 @@ MapiHandler::MapiInfo::MapiInfo(
 void MapiHandler::MapiInfo::infoHandler() {
     std::lock_guard<std::mutex> lock(res.mtx);
     res.contents = getString();
-    Logger::debug(name, "Received: {}", utils::shorten(res.contents));
+    Logger::debug(name, "Received: {}", res.contents);
     res.isReady = true;
     res.isError = isError;
     res.cv.notify_one();

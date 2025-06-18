@@ -55,9 +55,10 @@ Result<CounterRates::Response> CounterRates::Response::fromMatch(
     std::string fifoReadResult = *it++;
 
     std::vector<uint32_t> counters(numberOfCounters);
-    if (*it == "-") {
+    if (!it->matched) {
         Logger::warning(testName, "No counters");
         counters.clear();
+        it += numberOfCounters;
     } else {
         for (size_t i = 0; i < numberOfCounters; i++) {
             TRY_ASSIGN(parseInt(*it++), counters[i]);
@@ -65,8 +66,10 @@ Result<CounterRates::Response> CounterRates::Response::fromMatch(
     }
 
     std::vector<double> rates(numberOfCounters);
-    if (*it == "-") {
+    if (!it->matched) {
+        Logger::warning(testName, "No rates");
         rates.clear();
+        it += numberOfCounters;
     } else {
         for (size_t i = 0; i < numberOfCounters; i++) {
             TRY_ASSIGN(parseDouble(*it++), rates[i]);
@@ -94,15 +97,15 @@ const std::string CounterRates::TcmPattern =
         R"(READ_INTERVAL,({}),({})s\n)" // 1, 2
         R"(FIFO_STATE,({}),({})\n)" // 3, 4
         R"(FIFO_READ_RESULT,({})\n)" // 5
-        R"(COUNTERS,{}\n)" // 6-20
-        R"(RATES,{}\n)" // 21-35
+        R"(COUNTERS,(?:{}|-)\n)" // 6-20
+        R"(RATES,(?:{}|-)\n)" // 21-35
         R"(PREV_ELAPSED,({})ms\n)" // 36
-        R"(Executed:([^\n]?))", // 37
+        R"(Executed:([^\n]*))", // 37
         STR, FLT,
         STR, DEC,
         STR,
-        repeat(std::format("({}|-)", DEC), ",", 15),
-        repeat(std::format("({}|-)", FLT), ",", 15),
+        repeat(std::format("({})", DEC), ",", 15),
+        repeat(std::format("({})", FLT), ",", 15),
         FLT
     );
 
@@ -111,15 +114,15 @@ const std::string CounterRates::PmPattern =
         R"(READ_INTERVAL,({}),({})s\n)" // 1, 2
         R"(FIFO_STATE,({}),({})\n)" // 3, 4
         R"(FIFO_READ_RESULT,({})\n)" // 5
-        R"(COUNTERS,{}\n)" // 6-29
-        R"(RATES,{}\n)" // 30-44
+        R"(COUNTERS,(?:{}|-)\n)" // 6-29
+        R"(RATES,(?:{}|-)\n)" // 30-44
         R"(PREV_ELAPSED,({})ms\n)" // 45
-        R"(Executed:([^\n]?))", // 46
+        R"(Executed:([^\n]*))", // 46
         STR, FLT,
         STR, DEC,
         STR,
-        repeat(std::format("({}|-)", DEC), ",", 24),
-        repeat(std::format("({}|-)", FLT), ",", 24),
+        repeat(std::format("({})", DEC), ",", 24),
+        repeat(std::format("({})", FLT), ",", 24),
         FLT
     );
 // clang-format on
@@ -132,7 +135,11 @@ CounterRates::CounterRates(std::string boardName) :
         type(boardName) == "TCM" ? TcmPattern : PmPattern,
         nullptr
     ),
-    m_valueTracker(m_testName, type(boardName) == "TCM" ? 15 : 24) {
+    m_valueTracker(
+        m_testName,
+        type(boardName) == "TCM" ? 15 : 24,
+        this->m_expectedInterval
+    ) {
     m_valueValidator =
         std::ref(m_valueTracker); // avoid initialization order problems
 }
@@ -144,7 +151,8 @@ Result<void> CounterRates::ValueTracker::operator()(std::smatch match) {
         res
     );
 
-    if (res.readIntervalState != "OK" || res.readIntervalSeconds != 1.) {
+    if ((res.readIntervalState != "OK" && res.readIntervalState != "CHANGED")
+        || res.readIntervalSeconds != 2 * currentInterval) {
         return err(
             "Invalid read interval: status {}, {}s",
             res.readIntervalState,
@@ -152,8 +160,13 @@ Result<void> CounterRates::ValueTracker::operator()(std::smatch match) {
         );
     }
 
+    if (res.readIntervalState == "CHANGED") {
+        Logger::warning(testName, "Read interval changed");
+    }
+
     if (res.fifoState != "SINGLE" && res.fifoState != "MULTIPLE"
-        && res.fifoState != "PARTIAL" && res.fifoState != "EMPTY") {
+        && res.fifoState != "PARTIAL" && res.fifoState != "EMPTY"
+        && res.fifoState != "OUTDATED") {
         return err("Invalid FIFO state: {}", res.fifoState);
     }
 
@@ -207,10 +220,12 @@ void CounterRates::logSummary() const {
 
 CounterRates::ValueTracker::ValueTracker(
     std::string testName,
-    size_t numberOfCounters
+    size_t numberOfCounters,
+    double& currentInterval
 ) :
     testName(testName),
     numberOfCounters(numberOfCounters),
+    currentInterval(currentInterval),
     rates(numberOfCounters) {}
 
 void CounterRates::resetCounters() {

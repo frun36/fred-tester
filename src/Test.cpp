@@ -18,7 +18,17 @@ Test::Test(
     timeout(timeout),
     isError(isError),
     pattern(std::move(pattern)),
-    valueValidator(std::move(valueValidator)) {}
+    valueValidator(std::move(valueValidator)) {
+    Logger::debug(
+        this->testName,
+        "cmd {}, pat {}, timeout {}s, isError = {},{} value validator",
+        this->command,
+        this->pattern,
+        this->timeout,
+        this->isError,
+        this->valueValidator == nullptr ? " no" : ""
+    );
+}
 
 Result<void> Test::run() {
     auto response = mapi->handleCommandWithResponse(command, timeout, isError);

@@ -21,6 +21,14 @@ TrackingTest::TrackingTest(
     if (expectedInterval < 0) {
         throw std::runtime_error("Invalid expected interval");
     }
+
+    Logger::debug(
+        m_testName,
+        "pat {}, expected interval {}s,{} value validator",
+        m_pattern,
+        m_expectedInterval,
+        m_valueValidator == nullptr ? " no" : ""
+    );
 }
 
 void TrackingTest::start(double expectedInterval) {
@@ -58,6 +66,7 @@ void TrackingTest::stop() {
 void TrackingTest::loop() {
     auto lastTime = std::chrono::steady_clock::now();
     m_stats.reset();
+    std::regex re(m_pattern);
     while (!m_stopFlag.load()) {
         auto response = m_mapi->handleResponse(m_expectedInterval * 2);
         if (!response) {
@@ -73,7 +82,6 @@ void TrackingTest::loop() {
             continue;
         }
 
-        std::regex re(m_pattern);
         std::smatch match;
 
         if (!std::regex_match(*response, match, re)) {

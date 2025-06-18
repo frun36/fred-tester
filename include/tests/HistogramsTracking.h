@@ -11,7 +11,7 @@ class TcmHistogramsTracking: public TrackingTest {
     TcmHistogramsTracking(bool selectableHistogramEnabled) :
         TrackingTest(
             "TCM HISTOGRAMS TRACKING",
-            MapiHandler::get(utils::topic(utils::TCM, "HISTOGRAMS")),
+            MapiHandler::get(utils::topic(utils::PM, "HISTOGRAMS")),
             1.0,
             std::format(
                 R"(({})\n)"
@@ -39,9 +39,7 @@ class PmHistogramsTracking: public TrackingTest {
                 R"(({})\n)"
                 R"({})",
                 utils::HEX,
-                (adc0 ? pmHistRegex("ADC0") : "")
-                    + (adc1 ? pmHistRegex("ADC1") : "")
-                    + (time ? pmHistRegex("TIME") : "")
+                pmHistRegex(adc0, adc1, time)
             ),
             nullptr
         ) {}

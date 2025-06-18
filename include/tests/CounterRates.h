@@ -74,6 +74,7 @@ class CounterRates: public TrackingTest {
         std::string testName;
         size_t numberOfCounters;
 
+        double& currentInterval;
         std::vector<utils::Welford> rates;
         utils::Welford elapsed;
         utils::Welford newValuesInterval;
@@ -83,7 +84,7 @@ class CounterRates: public TrackingTest {
 
         Result<void> operator()(std::smatch match);
 
-        ValueTracker(std::string testName, size_t numberOfCounters);
+        ValueTracker(std::string testName, size_t numberOfCounters, double& currentInterval);
     };
 
     ValueTracker m_valueTracker;
