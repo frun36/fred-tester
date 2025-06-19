@@ -20,9 +20,9 @@ class TcmHistogramsSingle: public Test {
                  .withMaxLineLength(128)
                  .pattern(
                      R"(({})\n)"
-                     R"(SELECTABLE{}(?:\n|\.\.\.))"
-                     R"(01,[0-9,]+(?:\n|\.\.\.))"
-                     R"(02,[0-9,]+(?:\n|\.\.\.))"
+                     R"(SELECTABLE{}(?:\.\.\.)?\n)"
+                     R"(01,[0-9,]+(?:\.\.\.)?\n)"
+                     R"(02,[0-9,]+(?:\.\.\.)?\n)"
                      R"(READ_ELAPSED,({})ms\n)"
                      R"(PREV_ELAPSED,({})ms\n)",
                      utils::HEX,

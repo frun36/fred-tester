@@ -20,7 +20,8 @@ class TcmHistogramsTracking: public TrackingTest {
                 R"(01,[0-9,]+(?:\.\.\.)?\n)"
                 R"(02,[0-9,]+(?:\.\.\.)?\n)"
                 R"(READ_ELAPSED,({})ms\n)"
-                R"(PREV_ELAPSED,({})ms\n)",
+                R"(PREV_ELAPSED,({})ms\n)"
+                R"(Executed:.*)",
                 utils::HEX,
                 selectableHistogramEnabled ? ",[0-9,]+" : "",
                 utils::FLT,
@@ -42,7 +43,8 @@ class PmHistogramsTracking: public TrackingTest {
                 R"(({})\n)"
                 R"({})"
                 R"(READ_ELAPSED,({})ms\n)"
-                R"(PREV_ELAPSED,({})ms\n)",
+                R"(PREV_ELAPSED,({})ms\n)"
+                R"(Executed:.*)",
                 utils::HEX,
                 pmHistRegex(adc0, adc1, time),
                 utils::FLT,
