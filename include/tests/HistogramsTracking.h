@@ -11,18 +11,20 @@ class TcmHistogramsTracking: public TrackingTest {
     TcmHistogramsTracking(bool selectableHistogramEnabled) :
         TrackingTest(
             "TCM HISTOGRAMS TRACKING",
-            MapiHandler::get(utils::topic(utils::PM, "HISTOGRAMS")),
+            MapiHandler::get(utils::topic(utils::TCM, "HISTOGRAMS")),
             1.0,
+            128,
             std::format(
                 R"(({})\n)"
-                R"(SELECTABLE{}\n)"
-                R"(01(?:,{})+\n)"
-                R"(02(?:,{})+\n)",
+                R"(SELECTABLE{}(?:\.\.\.)?\n)"
+                R"(01,[0-9,]+(?:\.\.\.)?\n)"
+                R"(02,[0-9,]+(?:\.\.\.)?\n)"
+                R"(READ_ELAPSED,({})ms\n)"
+                R"(PREV_ELAPSED,({})ms\n)",
                 utils::HEX,
-                selectableHistogramEnabled ? std::format("(?:,{})+", utils::DEC)
-                                           : "",
-                utils::DEC,
-                utils::DEC
+                selectableHistogramEnabled ? ",[0-9,]+" : "",
+                utils::FLT,
+                utils::FLT
             ),
             nullptr
         ) {}
@@ -35,11 +37,16 @@ class PmHistogramsTracking: public TrackingTest {
             "PM HISTOGRAMS TRACKING",
             MapiHandler::get(utils::topic(utils::PM, "HISTOGRAMS")),
             1.0,
+            128,
             std::format(
                 R"(({})\n)"
-                R"({})",
+                R"({})"
+                R"(READ_ELAPSED,({})ms\n)"
+                R"(PREV_ELAPSED,({})ms\n)",
                 utils::HEX,
-                pmHistRegex(adc0, adc1, time)
+                pmHistRegex(adc0, adc1, time),
+                utils::FLT,
+                utils::FLT
             ),
             nullptr
         ) {}

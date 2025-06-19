@@ -15,6 +15,7 @@ class Status: public TrackingTest {
             boardName + " STATUS TRACKER",
             MapiHandler::get(topic(boardName, "STATUS")),
             1.0,
+            0,
             std::format(
                 R"((?:(?!IS_BOARD_OK,){},{}\n)*IS_BOARD_OK,({})\n)", // only matching group - after IS_BOARD_OK
                 STR,

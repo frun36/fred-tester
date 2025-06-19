@@ -132,6 +132,7 @@ CounterRates::CounterRates(std::string boardName) :
         boardName + " COUNTER_RATES TRACKER",
         MapiHandler::get(topic(boardName, "COUNTER_RATES")),
         0.5,
+        0,
         type(boardName) == "TCM" ? TcmPattern : PmPattern,
         nullptr
     ),

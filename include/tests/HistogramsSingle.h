@@ -2,8 +2,8 @@
 
 #include <format>
 
-#include "Test.h"
 #include "Logger.h"
+#include "Test.h"
 #include "utils.h"
 
 namespace tests {
@@ -17,19 +17,16 @@ class TcmHistogramsSingle: public Test {
         )
                  .mapiName(utils::topic(utils::TCM, "HISTOGRAMS"))
                  .command("READ")
+                 .withMaxLineLength(128)
                  .pattern(
                      R"(({})\n)"
-                     R"(SELECTABLE{}\n)"
-                     R"(01(?:,{})+\n)"
-                     R"(02(?:,{})+\n)"
+                     R"(SELECTABLE{}(?:\n|\.\.\.))"
+                     R"(01,[0-9,]+(?:\n|\.\.\.))"
+                     R"(02,[0-9,]+(?:\n|\.\.\.))"
                      R"(READ_ELAPSED,({})ms\n)"
                      R"(PREV_ELAPSED,({})ms\n)",
                      utils::HEX,
-                     selectableHistogramEnabled
-                         ? std::format("(?:,{})+", utils::DEC)
-                         : "",
-                     utils::DEC,
-                     utils::DEC,
+                     selectableHistogramEnabled ? ",[0-9,]+" : "",
                      utils::FLT,
                      utils::FLT
                  )
@@ -44,20 +41,22 @@ static inline std::string pmHistRegex(bool adc0, bool adc1, bool time) {
     for (size_t i = 0; i < 12; i++) {
         re += std::format(R"(CH{:02}ADC0)", i + 1);
         if (adc0) {
-            re += std::format(R"((,{})*\n)", utils::FLT);
+            re += std::format(R"(,[0-9,]+(?:\.\.\.)?)");
         }
+        re += R"(\n)";
 
         re += std::format(R"(CH{:02}ADC1)", i + 1);
         if (adc1) {
-            re += std::format(R"((,{})*\n)", utils::FLT);
+            re += std::format(R"(,[0-9,]+(?:\.\.\.)?)");
         }
+        re += R"(\n)";
 
         re += std::format(R"(CH{:02}TIME)", i + 1);
         if (time) {
-            re += std::format(R"((,{})*\n)", utils::FLT);
+            re += std::format(R"(,[0-9,]+(?:\.\.\.)?)");
         }
+        re += R"(\n)";
     }
-    Logger::warning(re, "");
     return re;
 }
 
@@ -72,6 +71,7 @@ class PmHistogramsSingle: public Test {
         )
                  .mapiName(utils::topic(utils::PM, "HISTOGRAMS"))
                  .command("READ")
+                 .withMaxLineLength(128)
                  .pattern(
                      R"(({})\n)"
                      R"({})"

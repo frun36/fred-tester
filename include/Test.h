@@ -17,6 +17,7 @@ struct Test {
         std::string command,
         double timeout,
         bool isError,
+        size_t maxLineLength,
         std::string pattern,
         ValueValidator valueValidator
     );
@@ -26,6 +27,7 @@ struct Test {
     std::string command;
     double timeout;
     bool isError;
+    size_t maxLineLength;
     std::string pattern;
     ValueValidator valueValidator;
 
@@ -39,6 +41,7 @@ class TestBuilder {
     std::string m_command = "";
     double m_timeout = 0.1;
     bool m_expectError = false;
+    std::size_t m_maxLineLength = 0;
     std::string m_pattern = "";
     ValueValidator m_valueValidator = nullptr;
 
@@ -61,6 +64,9 @@ class TestBuilder {
         m_pattern = std::format(fmt, std::forward<Args>(args)...);
         return *this;
     }
+
+    TestBuilder& withMaxLineLength(size_t maxLineLength);
+    TestBuilder& withoutMaxLineLength();
 
     TestBuilder& withValueValidator(ValueValidator valueValidator);
     TestBuilder& withoutValueValidator();

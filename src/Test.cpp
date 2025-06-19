@@ -9,6 +9,7 @@ Test::Test(
     std::string command,
     double timeout,
     bool isError,
+    size_t maxLineLength,
     std::string pattern,
     ValueValidator valueValidator
 ) :
@@ -17,6 +18,7 @@ Test::Test(
     command(std::move(command)),
     timeout(timeout),
     isError(isError),
+    maxLineLength(maxLineLength),
     pattern(std::move(pattern)),
     valueValidator(std::move(valueValidator)) {
     Logger::debug(
@@ -48,8 +50,16 @@ Result<void> Test::run() {
     std::regex re(pattern);
     std::smatch match;
 
-    if (!std::regex_match(*response, match, re)) {
-        return err("Invalid response: {}", utils::shorten(*response));
+    std::string responseStr = maxLineLength > 0
+        ? utils::shortenLines(*response, maxLineLength)
+        : std::move(*response);
+
+    if (!std::regex_match(responseStr, match, re)) {
+        return err(
+            "Invalid response '{}' doesn't match regex '{}'",
+            utils::shorten(responseStr),
+            utils::shorten(pattern)
+        );
     }
 
     if (valueValidator != nullptr) {
@@ -98,6 +108,16 @@ TestBuilder& TestBuilder::expectOk() {
     return *this;
 }
 
+TestBuilder& TestBuilder::withMaxLineLength(size_t maxLineLength) {
+    m_maxLineLength = maxLineLength;
+    return *this;
+}
+
+TestBuilder& TestBuilder::withoutMaxLineLength() {
+    m_maxLineLength = 0;
+    return *this;
+}
+
 TestBuilder& TestBuilder::withValueValidator(ValueValidator valueValidator) {
     m_valueValidator = valueValidator;
     return *this;
@@ -115,6 +135,7 @@ Test TestBuilder::build() const {
         m_command,
         m_timeout,
         m_expectError,
+        m_maxLineLength,
         m_pattern,
         m_valueValidator
     );

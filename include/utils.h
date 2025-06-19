@@ -1,7 +1,10 @@
 #pragma once
 
+#include <algorithm>
 #include <cmath>
 #include <iostream>
+#include <iterator>
+#include <ranges>
 #include <string>
 
 #include "Result.h"
@@ -103,6 +106,30 @@ static inline std::string shorten(
     }
 
     return out;
+}
+
+static inline std::string shortenLines(
+    const std::string& input,
+    size_t maxLen = 128,
+    std::string ellipsis = "..."
+) {
+    auto view =
+        input | std::views::split('\n') | std::views::transform([&](auto&& s) {
+            auto truncated = s | std::views::take(maxLen);
+            std::string res(truncated.begin(), truncated.end());
+            if (std::ranges::distance(truncated) < std::ranges::distance(s)) {
+                res += ellipsis;
+            }
+            return res;
+        });
+
+    std::string res;
+    for (auto&& line : view) {
+        res += line + '\n';
+    }
+    res.pop_back();
+
+    return res;
 }
 
 static inline std::string type(std::string boardName) {

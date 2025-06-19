@@ -10,12 +10,14 @@ TrackingTest::TrackingTest(
     std::string testName,
     std::shared_ptr<MapiHandler> mapi,
     double expectedInterval,
+    size_t maxLineLength,
     std::string pattern,
     ValueValidator valueValidator
 ) :
     m_testName(testName),
     m_mapi(mapi),
     m_expectedInterval(expectedInterval),
+    m_maxLineLength(maxLineLength),
     m_pattern(pattern),
     m_valueValidator(valueValidator) {
     if (expectedInterval < 0) {
@@ -82,13 +84,17 @@ void TrackingTest::loop() {
             continue;
         }
 
-        std::smatch match;
+        std::string responseStr = m_maxLineLength > 0
+            ? utils::shortenLines(*response, m_maxLineLength)
+            : std::move(*response);
 
-        if (!std::regex_match(*response, match, re)) {
+        std::smatch match;
+        if (!std::regex_match(responseStr, match, re)) {
             Logger::error(
                 m_testName,
-                "Invalid response: {}",
-                utils::shorten(*response)
+                "Invalid response '{}' doesn't match regex '{}'",
+                utils::shorten(responseStr),
+                utils::shorten(m_pattern)
             );
         }
 

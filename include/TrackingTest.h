@@ -13,6 +13,7 @@ class TrackingTest {
     std::string m_testName;
     std::shared_ptr<MapiHandler> m_mapi;
     double m_expectedInterval;
+    size_t m_maxLineLength;
     std::string m_pattern;
     ValueValidator m_valueValidator;
 
@@ -33,6 +34,7 @@ class TrackingTest {
         std::string testName,
         std::shared_ptr<MapiHandler> mapi,
         double expectedInterval,
+        size_t maxLineLength,
         std::string pattern,
         ValueValidator valueValidator
     );
