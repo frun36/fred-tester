@@ -4,7 +4,7 @@
 #include <stdexcept>
 
 #include "Logger.h"
-#include "Test.h"
+#include "CommandTest.h"
 
 TrackingTest::TrackingTest(
     std::string testName,
@@ -77,7 +77,7 @@ void TrackingTest::loop() {
             } else {
                 Logger::error(
                     m_testName,
-                    "Unexpected error: {}",
+                    "Unexpected error:\n{}",
                     utils::shorten(response.error())
                 );
             }
@@ -92,7 +92,9 @@ void TrackingTest::loop() {
         if (!std::regex_match(responseStr, match, re)) {
             Logger::error(
                 m_testName,
-                "Invalid response '{}' doesn't match regex '{}'",
+                "Response doesn't match regex\n"
+                "{}\n"
+                "{}",
                 utils::shorten(responseStr),
                 utils::shorten(m_pattern)
             );
@@ -103,7 +105,7 @@ void TrackingTest::loop() {
             if (!val) {
                 Logger::error(
                     m_testName,
-                    "Value validation failed: {}",
+                    "Value validation failed:\n{}",
                     val.error()
                 );
             }

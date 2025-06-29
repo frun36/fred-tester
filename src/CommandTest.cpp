@@ -1,9 +1,9 @@
-#include "Test.h"
+#include "CommandTest.h"
 
 #include "Logger.h"
 #include "utils.h"
 
-Test::Test(
+CommandTest::CommandTest(
     std::string testName,
     std::shared_ptr<MapiHandler> mapi,
     std::string command,
@@ -32,7 +32,7 @@ Test::Test(
     );
 }
 
-Result<void> Test::run() {
+Result<void> CommandTest::run() {
     auto response = mapi->handleCommandWithResponse(command, timeout, isError);
 
     if (!response) {
@@ -40,7 +40,7 @@ Result<void> Test::run() {
             return err("Timeout when waiting for response");
         } else {
             return err(
-                "Unexpected {}: {}",
+                "Unexpected {}:\n{}",
                 (isError ? "success" : "error"),
                 utils::shorten(response.error())
             );
@@ -56,7 +56,9 @@ Result<void> Test::run() {
 
     if (!std::regex_match(responseStr, match, re)) {
         return err(
-            "Invalid response '{}' doesn't match regex '{}'",
+            "Response doesn't match regex:\n"
+            "{}\n"
+            "{}",
             utils::shorten(responseStr),
             utils::shorten(pattern)
         );
@@ -65,14 +67,14 @@ Result<void> Test::run() {
     if (valueValidator != nullptr) {
         auto val = valueValidator(std::move(match));
         if (!val) {
-            return err("Value validation failed: {}", val.error());
+            return err("Value validation failed:\n{}", val.error());
         }
     }
 
     return {};
 }
 
-bool Test::runAndLog() {
+bool CommandTest::runAndLog() {
     auto res = run();
     if (res) {
         Logger::info(testName, "Success");
@@ -128,8 +130,8 @@ TestBuilder& TestBuilder::withoutValueValidator() {
     return *this;
 }
 
-Test TestBuilder::build() const {
-    return Test(
+CommandTest TestBuilder::build() const {
+    return CommandTest(
         m_name,
         MapiHandler::get(m_mapiName),
         m_command,

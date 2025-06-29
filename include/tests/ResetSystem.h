@@ -1,14 +1,14 @@
 #pragma once
 
-#include "Test.h"
+#include "CommandTest.h"
 #include "utils.h"
 
 namespace tests {
 
-class ResetSystem: public Test {
+class ResetSystem: public CommandTest {
   public:
     ResetSystem() :
-        Test(TestBuilder("RESET_SYSTEM")
+        CommandTest(TestBuilder("RESET_SYSTEM")
                  .mapiName(utils::topic(utils::TCM, "RESET_SYSTEM"))
                  .command("")
                  .pattern(R"(SUCCESS)")

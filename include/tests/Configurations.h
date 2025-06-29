@@ -1,14 +1,14 @@
 #pragma once
 
-#include "Test.h"
+#include "CommandTest.h"
 #include "utils.h"
 
 namespace tests {
 
-class Configurations: public Test {
+class Configurations: public CommandTest {
   public:
     Configurations(std::string configurationName) :
-        Test(TestBuilder("APPLY CONFIGURATION")
+        CommandTest(TestBuilder("APPLY CONFIGURATION")
                  .mapiName(utils::topic("TCM0", "CONFIGURATIONS"))
                  .command(configurationName)
                  .pattern(

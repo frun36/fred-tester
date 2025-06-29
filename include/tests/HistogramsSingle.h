@@ -3,15 +3,15 @@
 #include <format>
 
 #include "Logger.h"
-#include "Test.h"
+#include "CommandTest.h"
 #include "utils.h"
 
 namespace tests {
 
-class TcmHistogramsSingle: public Test {
+class TcmHistogramsSingle: public CommandTest {
   public:
     TcmHistogramsSingle(bool selectableHistogramEnabled) :
-        Test(TestBuilder(
+        CommandTest(TestBuilder(
                  "TCM HISTOGRAMS READ{}",
                  selectableHistogramEnabled ? " SEL" : ""
         )
@@ -60,10 +60,10 @@ static inline std::string pmHistRegex(bool adc0, bool adc1, bool time) {
     return re;
 }
 
-class PmHistogramsSingle: public Test {
+class PmHistogramsSingle: public CommandTest {
   public:
     PmHistogramsSingle(bool adc0, bool adc1, bool time) :
-        Test(TestBuilder(
+        CommandTest(TestBuilder(
                  "PM HISTOGRAMS READ ({}, {}, {})",
                  adc0 ? std::string("ADC0") : std::string("-"),
                  adc1 ? std::string("ADC1") : std::string("-"),

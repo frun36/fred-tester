@@ -24,7 +24,16 @@ bool FredTester::setup() {
 
     std::this_thread::sleep_for(1s);
 
+    res = ResetErrors().runAndLog();
+    if (!res) {
+        return false;
+    }
+
+    std::this_thread::sleep_for(1s);
+
     MapiHandler::sendCommand(utils::topic(utils::TCM, "MANAGER"), "START");
+
+    std::this_thread::sleep_for(1s);
 
     tcmStatus.start();
     pmStatus.start();
@@ -33,11 +42,6 @@ bool FredTester::setup() {
     if (!res) {
         return false;
     }
-
-    // res = ResetErrors().runAndLog();
-    // if (!res) {
-    //     return false;
-    // }
 
     std::this_thread::sleep_for(2.5s);
 
@@ -129,6 +133,12 @@ void FredTester::run() {
     Parameters(utils::PM).run();
     std::this_thread::sleep_for(5s);
 
+    tcmCounterRates.resetCounters();
+    std::this_thread::sleep_for(5s);
+
+    pmCounterRates.resetCounters();
+    std::this_thread::sleep_for(5s);
+
     changeReadInterval();
 
     std::this_thread::sleep_for(1s);
@@ -136,13 +146,6 @@ void FredTester::run() {
     histograms();
 
     std::this_thread::sleep_for(1s);
-
-    tcmCounterRates.resetCounters();
-    std::this_thread::sleep_for(5s);
-
-    pmCounterRates.resetCounters();
-    std::this_thread::sleep_for(5s);
-
     finish();
 }
 

@@ -161,10 +161,6 @@ Result<void> CounterRates::ValueTracker::operator()(std::smatch match) {
         );
     }
 
-    if (res.readIntervalState == "CHANGED") {
-        Logger::warning(testName, "Read interval changed");
-    }
-
     if (res.fifoState != "SINGLE" && res.fifoState != "MULTIPLE"
         && res.fifoState != "PARTIAL" && res.fifoState != "EMPTY"
         && res.fifoState != "OUTDATED") {
@@ -201,7 +197,7 @@ Result<void> CounterRates::ValueTracker::operator()(std::smatch match) {
 void CounterRates::logSummary() const {
     auto rates =
         m_valueTracker.rates | std::ranges::views::transform([](const auto& r) {
-            return std::format(" {:.3f}±{:.3f}", r.mean(), r.stddev());
+            return std::format("\n{:.3f}±{:.3f}", r.mean(), r.stddev());
         });
     std::string ratesStr = "Rates";
     for (auto it = rates.begin(); it < rates.end(); it++) {

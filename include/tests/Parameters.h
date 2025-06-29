@@ -1,4 +1,4 @@
-#include "Test.h"
+#include "CommandTest.h"
 #include "TestSuite.h"
 #include "utils.h"
 
@@ -46,7 +46,25 @@ class Parameters: public TestSuite {
 
              TestBuilder("{} WRITE_ELECTRONIC", boardName)
                  .mapiName(utils::topic(boardName, "PARAMETERS"))
-                 .command("GBT_EMULATED_TRIGGERS_PATTERN_LSB,WRITE,0xFF")
+                 .command("GBT_EMULATED_TRIGGERS_PATTERN_LSB,WRITE_ELECTRONIC,0xFF")
+                 .pattern(
+                     R"(GBT_EMULATED_TRIGGERS_PATTERN_LSB,({})\n)",
+                     utils::FLT
+                 )
+                 .withValueValidator([](auto match) -> Result<void> {
+                     if (std::stod(match[1]) == 255) {
+                         return {};
+                     } else {
+                         return err("Read value {}", match[1].str());
+                     }
+                 })
+                 .timeout(0.2)
+                 .expectOk()
+                 .build(),
+
+             TestBuilder("{} WRITE_ELECTRONIC", boardName)
+                 .mapiName(utils::topic(boardName, "PARAMETERS"))
+                 .command("GBT_EMULATED_TRIGGERS_PATTERN_LSB,WRITE,-36")
                  .pattern(
                      R"(GBT_EMULATED_TRIGGERS_PATTERN_LSB,({})\n)",
                      utils::FLT

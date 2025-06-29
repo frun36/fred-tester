@@ -5,7 +5,7 @@
 #include <string>
 
 #include "MapiHandler.h"
-#include "Test.h"
+#include "CommandTest.h"
 #include "utils.h"
 
 class TrackingTest {

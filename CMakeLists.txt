@@ -23,7 +23,7 @@ add_compile_options(-g -Wall -Wextra -Wpedantic)
 
 add_executable(fred-tester
     src/main.cpp
-    src/Test.cpp
+    src/CommandTest.cpp
     src/MapiHandler.cpp
     src/TrackingTest.cpp
     src/tests/CounterRates.cpp

@@ -10,8 +10,8 @@
 
 using ValueValidator = std::function<Result<void>(std::smatch)>;
 
-struct Test {
-    Test(
+struct CommandTest {
+    CommandTest(
         std::string testName,
         std::shared_ptr<MapiHandler> mapi,
         std::string command,
@@ -70,5 +70,5 @@ class TestBuilder {
 
     TestBuilder& withValueValidator(ValueValidator valueValidator);
     TestBuilder& withoutValueValidator();
-    Test build() const;
+    CommandTest build() const;
 };
