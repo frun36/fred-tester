@@ -4,8 +4,8 @@
 #include <memory>
 #include <string>
 
-#include "MapiHandler.h"
 #include "CommandTest.h"
+#include "MapiHandler.h"
 #include "utils.h"
 
 class TrackingTest {
@@ -40,5 +40,5 @@ class TrackingTest {
     );
 
     void start(double expectedInterval = -1.);
-    void stop();
+    void stop(bool doLogSummary = true);
 };

@@ -55,12 +55,36 @@ void FredTester::changeReadInterval() {
     tcmCounterRates.stop();
     pmCounterRates.stop();
     std::this_thread::sleep_for(10ms);
+
+    Logger::info("COUNTER_RATES", "Read interval change");
     MapiHandler::sendCommand(
         topic(TCM, "PARAMETERS"),
         "COUNTER_READ_INTERVAL,WRITE,3"
     );
     tcmCounterRates.start(0.5 / 2.); // 2x faster responses than read interval
     pmCounterRates.start(0.5 / 2.);
+}
+
+void FredTester::resetReadIntervalAndCounters() {
+    tcmCounterRates.stop(false);
+    pmCounterRates.stop(false);
+    std::this_thread::sleep_for(10ms);
+
+    Logger::info("COUNTER_RATES", "Read interval change");
+    MapiHandler::sendCommand(
+        topic(TCM, "PARAMETERS"),
+        "COUNTER_READ_INTERVAL,WRITE,4"
+    );
+    tcmCounterRates.start(1. / 2.); // 2x faster responses than read interval
+    pmCounterRates.start(1. / 2.);
+
+    std::this_thread::sleep_for(5s);
+
+    tcmCounterRates.resetCounters();
+    std::this_thread::sleep_for(5s);
+
+    pmCounterRates.resetCounters();
+    std::this_thread::sleep_for(5s);
 }
 
 void FredTester::histograms() {
@@ -117,8 +141,8 @@ void FredTester::finish() {
     tcmStatus.stop();
     pmStatus.stop();
 
-    tcmCounterRates.stop();
-    pmCounterRates.stop();
+    tcmCounterRates.stop(false);
+    pmCounterRates.stop(false);
 }
 
 void FredTester::run() {
@@ -133,19 +157,18 @@ void FredTester::run() {
     Parameters(utils::PM).run();
     std::this_thread::sleep_for(5s);
 
-    tcmCounterRates.resetCounters();
-    std::this_thread::sleep_for(5s);
+    histograms();
 
-    pmCounterRates.resetCounters();
-    std::this_thread::sleep_for(5s);
+    std::this_thread::sleep_for(10s);
 
     changeReadInterval();
 
-    std::this_thread::sleep_for(1s);
+    std::this_thread::sleep_for(5s);
 
-    histograms();
+    resetReadIntervalAndCounters();
 
-    std::this_thread::sleep_for(1s);
+    std::this_thread::sleep_for(2s);
+
     finish();
 }
 

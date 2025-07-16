@@ -16,6 +16,7 @@ class FredTester {
   public:
     bool setup();
     void changeReadInterval();
+    void resetReadIntervalAndCounters();
     void run();
     void histograms();
     void finish();

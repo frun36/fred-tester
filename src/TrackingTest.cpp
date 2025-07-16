@@ -3,8 +3,8 @@
 #include <chrono>
 #include <stdexcept>
 
-#include "Logger.h"
 #include "CommandTest.h"
+#include "Logger.h"
 
 TrackingTest::TrackingTest(
     std::string testName,
@@ -46,7 +46,7 @@ void TrackingTest::start(double expectedInterval) {
     Logger::info(m_testName, "Started tracking");
 }
 
-void TrackingTest::stop() {
+void TrackingTest::stop(bool doLogSummary) {
     if (!m_running.load())
         return;
 
@@ -62,11 +62,13 @@ void TrackingTest::stop() {
         m_stats.stddev()
     );
 
-    logSummary();
+    if (doLogSummary) {
+        logSummary();
+    }
 }
 
 void TrackingTest::loop() {
-    auto lastTime = std::chrono::steady_clock::now();
+    std::optional<std::chrono::steady_clock::time_point> lastTime;
     m_stats.reset();
     std::regex re(m_pattern);
     while (!m_stopFlag.load()) {
@@ -112,16 +114,19 @@ void TrackingTest::loop() {
         }
 
         auto now = std::chrono::steady_clock::now();
-        std::chrono::duration<double> elapsed = now - lastTime;
-        m_stats.tick(elapsed.count());
 
-        Logger::debug(
-            m_testName,
-            "Interval: {:.3f}s | mean {:.3f} | stddev {:.3f}",
-            elapsed.count(),
-            m_stats.mean(),
-            m_stats.stddev()
-        );
+        if (lastTime) {
+            std::chrono::duration<double> elapsed = now - *lastTime;
+            m_stats.tick(elapsed.count());
+
+            Logger::debug(
+                m_testName,
+                "Interval: {:.3f}s | mean {:.3f} | stddev {:.3f}",
+                elapsed.count(),
+                m_stats.mean(),
+                m_stats.stddev()
+            );
+        }
 
         lastTime = now;
     }

@@ -79,12 +79,16 @@ class CounterRates: public TrackingTest {
         utils::Welford elapsed;
         utils::Welford newValuesInterval;
 
-        std::chrono::time_point<std::chrono::steady_clock> lastTime =
-            std::chrono::steady_clock::now();
+        std::optional<std::chrono::time_point<std::chrono::steady_clock>>
+            lastTime;
 
         Result<void> operator()(std::smatch match);
 
-        ValueTracker(std::string testName, size_t numberOfCounters, double& currentInterval);
+        ValueTracker(
+            std::string testName,
+            size_t numberOfCounters,
+            double& currentInterval
+        );
     };
 
     ValueTracker m_valueTracker;

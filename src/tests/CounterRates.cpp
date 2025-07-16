@@ -173,13 +173,11 @@ Result<void> CounterRates::ValueTracker::operator()(std::smatch match) {
 
     if (res.fifoReadResult == "SUCCESS") {
         auto now = std::chrono::steady_clock::now();
-        std::chrono::duration<double> elapsed = now - lastTime;
-        newValuesInterval.tick(elapsed.count());
-        Logger::debug(
-            testName,
-            "New rates received, last: {}s ago",
-            elapsed.count()
-        );
+        if (lastTime) {
+            std::chrono::duration<double> elapsed = now - *lastTime;
+            newValuesInterval.tick(elapsed.count());
+        }
+        Logger::debug(testName, "New rates received");
         lastTime = now;
     }
 
@@ -226,8 +224,8 @@ CounterRates::ValueTracker::ValueTracker(
     rates(numberOfCounters) {}
 
 void CounterRates::resetCounters() {
-    m_mapi->sendCommand("RESET");
     Logger::info(m_testName, "Performing reset");
+    m_mapi->sendCommand("RESET");
 }
 
 } // namespace tests
