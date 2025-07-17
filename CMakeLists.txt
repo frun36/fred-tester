@@ -34,5 +34,8 @@ target_include_directories(fred-tester PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/includ
 target_include_directories(fred-tester PUBLIC /opt/dim/dim)
 target_include_directories(fred-tester PUBLIC /usr/local/include/dim)
 
+# External
+target_include_directories(fred-tester PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/external/argparse/include/)
+
 target_link_libraries(fred-tester ${DIM_LIBRARY} pthread)
 
