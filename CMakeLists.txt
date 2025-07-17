@@ -35,7 +35,17 @@ target_include_directories(fred-tester PUBLIC /opt/dim/dim)
 target_include_directories(fred-tester PUBLIC /usr/local/include/dim)
 
 # External
-target_include_directories(fred-tester PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/external/argparse/include/)
+target_include_directories(fred-tester PUBLIC 
+    ${CMAKE_CURRENT_SOURCE_DIR}/external/argparse/include/
+    ${CMAKE_CURRENT_SOURCE_DIR}/external/tomlplusplus/include/
+)
+
+target_precompile_headers(fred-tester PRIVATE 
+    ${CMAKE_CURRENT_SOURCE_DIR}/external/argparse/include/argparse/argparse.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/external/tomlplusplus/include/toml++/toml.hpp
+)
+
+target_compile_definitions(fred-tester PUBLIC TOML_EXCEPTIONS=0)
 
 target_link_libraries(fred-tester ${DIM_LIBRARY} pthread)
 

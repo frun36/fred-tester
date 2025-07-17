@@ -1,9 +1,11 @@
+#include <argparse/argparse.hpp>
 #include <cstring>
 #include <string>
+#include <toml++/toml.hpp>
 
 #include "Logger.h"
-#include "argparse/argparse.hpp"
 #include "tests/FredTester.h"
+#include "tests/TesterConfig.h"
 
 int main(int argc, char** argv) {
     argparse::ArgumentParser program("fred-tester");
@@ -39,8 +41,30 @@ int main(int argc, char** argv) {
     if (program.get<std::string>("mode") == "dim") {
         std::cout << "Running as DIM server";
     } else {
-        std::cout << "Single run";
-        // tests::FredTester tester;
-        // tester.run();
+        toml::parse_result toml = toml::parse_file("../default.toml");
+        if (!toml) {
+            Logger::error(
+                "FRED_TESTER",
+                "TOML parsing error: {}",
+                toml.error().description()
+            );
+            exit(1);
+        }
+
+        auto cfgRes = TesterConfig::fromToml(toml.table());
+
+        if (!cfgRes) {
+            Logger::error(
+                "FRED_TESTER",
+                "Failed to process config: {}",
+                cfgRes.error()
+            );
+            exit(1);
+        }
+
+        auto cfg = *cfgRes;
+
+        tests::FredTester tester(cfg);
+        tester.run();
     }
 }
