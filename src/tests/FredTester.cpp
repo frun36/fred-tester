@@ -33,6 +33,7 @@ bool FredTester::setup() {
         std::this_thread::sleep_for(1s);
     }
 
+    Logger::info("MANAGER", "Sending START command");
     MapiHandler::sendCommand(utils::topic(utils::TCM, "MANAGER"), "START");
     std::this_thread::sleep_for(1s);
 
@@ -54,10 +55,6 @@ bool FredTester::setup() {
 }
 
 void FredTester::changeReadInterval() {
-    tcmCounterRates.stop();
-    pmCounterRates.stop();
-    std::this_thread::sleep_for(10ms);
-
     Logger::info("COUNTER_RATES", "Read interval change");
     MapiHandler::sendCommand(
         topic(TCM, "PARAMETERS"),
@@ -65,13 +62,14 @@ void FredTester::changeReadInterval() {
     );
     tcmCounterRates.start(0.5 / 2.); // 2x faster responses than read interval
     pmCounterRates.start(0.5 / 2.);
-}
 
-void FredTester::resetReadInterval() {
+    std::this_thread::sleep_for(5s);
     tcmCounterRates.stop(false);
     pmCounterRates.stop(false);
     std::this_thread::sleep_for(10ms);
+}
 
+void FredTester::resetReadInterval() {
     Logger::info("COUNTER_RATES", "Read interval change");
     MapiHandler::sendCommand(
         topic(TCM, "PARAMETERS"),
@@ -177,11 +175,13 @@ void FredTester::run() {
         pmHistograms();
     }
 
-    std::this_thread::sleep_for(10s);
+    std::this_thread::sleep_for(std::chrono::duration<double>(cfg.mainSleep));
+    tcmCounterRates.stop();
+    pmCounterRates.stop();
+    std::this_thread::sleep_for(10ms);
 
     if (cfg.readIntervalChange) {
         changeReadInterval();
-        std::this_thread::sleep_for(5s);
         resetReadInterval();
     }
 

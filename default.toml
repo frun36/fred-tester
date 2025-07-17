@@ -1,5 +1,5 @@
 [setup]
-connected_boards = [ "TCM0", "PMA0", "PMC0" ]
+connected_boards = ["TCM0", "PMA0", "PMC0"]
 reset_system = true
 reset_errors = true
 status_tracking = true
@@ -8,12 +8,13 @@ counter_rates_tracking = true
 
 [tests]
 tcm_parameters = true
-pm_parameters = [ "PMA0" ]
-read_interval_change = true
+pm_parameters = ["PMA0"]
 tcm_histograms = true
-pm_histograms = [ "PMA0" ]
+pm_histograms = ["PMA0"]
+main_sleep = 10.0
+read_interval_change = true
 tcm_reset_counters = true
-pm_reset_counters = [ "PMA0" ]
+pm_reset_counters = ["PMA0"]
 
 [cleanup]
 reset_errors = false

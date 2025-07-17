@@ -21,6 +21,10 @@ int main(int argc, char** argv) {
         )
         .choices("run", "dim");
 
+    program.add_argument("-c", "--config-file")
+        .help("Path to the config file (in run mode)")
+        .default_value("../default.toml");
+
     try {
         program.parse_args(argc, argv);
     } catch (const std::runtime_error& err) {
@@ -41,7 +45,8 @@ int main(int argc, char** argv) {
     if (program.get<std::string>("mode") == "dim") {
         std::cout << "Running as DIM server";
     } else {
-        toml::parse_result toml = toml::parse_file("../default.toml");
+        toml::parse_result toml =
+            toml::parse_file(program.get<std::string>("--config-file"));
         if (!toml) {
             Logger::error(
                 "FRED_TESTER",

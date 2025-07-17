@@ -1,0 +1,21 @@
+[setup]
+connected_boards = [ "TCM0", "PMA0", "PMC0" ]
+reset_system = false
+reset_errors = true
+status_tracking = true
+configuration = false
+counter_rates_tracking = true
+
+[tests]
+tcm_parameters = false
+pm_parameters = false
+tcm_histograms = false
+pm_histograms = false
+main_sleep = 3.0
+read_interval_change = false
+tcm_reset_counters = false
+pm_reset_counters = false
+
+[cleanup]
+reset_errors = false
+configuration = false

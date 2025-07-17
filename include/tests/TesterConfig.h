@@ -16,9 +16,10 @@ struct TesterConfig {
     const std::optional<std::string> setupConfiguration;
     const bool tcmParameters;
     const Boards pmParameters;
-    const bool readIntervalChange;
     const bool tcmHistograms;
     const Boards pmHistograms;
+    const double mainSleep;
+    const bool readIntervalChange;
     const bool tcmResetCounters;
     const Boards pmResetCounters;
     const bool cleanupResetErrors;
@@ -108,6 +109,14 @@ struct TesterConfig {
             return **val;
         };
 
+        auto parseDouble = [](const toml::table& tbl,
+                              std::string_view key) -> Result<double> {
+            auto val = tbl.get_as<double>(key);
+            if (!val)
+                return err("{} must be a double", std::string(key));
+            return **val;
+        };
+
         // -- Parse each field with error handling
 
         auto resetSystem = parseBool(setup, "reset_system");
@@ -150,6 +159,10 @@ struct TesterConfig {
         if (!pmHistograms)
             return std::unexpected(pmHistograms.error());
 
+        auto mainSleep = parseDouble(tests, "main_sleep");
+        if (!mainSleep)
+            return std::unexpected(mainSleep.error());
+
         auto tcmResetCounters = parseBool(tests, "tcm_reset_counters");
         if (!tcmResetCounters)
             return std::unexpected(tcmResetCounters.error());
@@ -180,13 +193,14 @@ struct TesterConfig {
             *setupConfiguration,
             *tcmParameters,
             *pmParameters,
-            *readIntervalChange,
             *tcmHistograms,
             *pmHistograms,
+            *mainSleep,
+            *readIntervalChange,
             *tcmResetCounters,
             *pmResetCounters,
             *cleanupResetErrors,
-            *cleanupConfiguration
+            *cleanupConfiguration,
         };
     }
 };
