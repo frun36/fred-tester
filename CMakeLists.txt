@@ -26,8 +26,16 @@ add_executable(fred-tester
     src/CommandTest.cpp
     src/MapiHandler.cpp
     src/TrackingTest.cpp
+    src/tests/Configurations.cpp
     src/tests/CounterRates.cpp
     src/tests/FredTester.cpp
+    src/tests/HistogramsSingle.cpp
+    src/tests/HistogramsTracking.cpp
+    src/tests/Parameters.cpp
+    src/tests/ResetErrors.cpp
+    src/tests/ResetSystem.cpp
+    src/tests/Status.cpp
+    src/tests/TesterConfig.cpp
 )
 
 target_include_directories(fred-tester PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include/)

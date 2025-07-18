@@ -56,7 +56,7 @@ int main(int argc, char** argv) {
             exit(1);
         }
 
-        auto cfgRes = TesterConfig::fromToml(toml.table());
+        auto cfgRes = tests::TesterConfig::fromToml(toml.table());
 
         if (!cfgRes) {
             Logger::error(

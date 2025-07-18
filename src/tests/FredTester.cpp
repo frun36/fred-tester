@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <thread>
 
+#include "Logger.h"
 #include "MapiHandler.h"
 #include "tests/Configurations.h"
 #include "tests/HistogramsSingle.h"
@@ -17,7 +18,7 @@ namespace tests {
 
 FredTester::FredTester(TesterConfig cfg) : cfg(cfg) {
     for (auto board : cfg.statusTracking) {
-        status.emplace_back(board, Status(board));
+        status.emplace_back(board, Status(board, cfg.connectedBoards));
     }
 
     for (auto board : cfg.counterRatesTracking) {

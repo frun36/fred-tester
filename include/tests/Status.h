@@ -1,36 +1,34 @@
-#include <format>
+#include <string_view>
+#include <unordered_map>
 
-#include "MapiHandler.h"
 #include "TrackingTest.h"
 #include "utils.h"
 
 namespace tests {
 
 class Status: public TrackingTest {
-  public:
-    Status(utils::Board board) :
-        TrackingTest(
-            board.name() + " STATUS TRACKER",
-            MapiHandler::get(topic(board, "STATUS")),
-            1.0,
-            0,
-            std::format(
-                R"((?:(?!IS_BOARD_OK,){},{}\n)*IS_BOARD_OK,({})\n)", // only matching group - after IS_BOARD_OK
-                utils::STR,
-                utils::FLT,
-                utils::FLT
-            ),
-            [](auto match) -> Result<void> {
-                double val = std::stod(match[1]);
-                if (val != 1.)
-                    return err("IS_BOARD_OK = {}", val);
-                else
-                    return {};
-            }
-        ) {}
+  private:
+    struct ValueValidator {
+        struct Val {
+            double value;
+            bool eq;
+        };
 
-    Status(Status&&) = default;
-    Status& operator=(Status&&) = default;
+        std::unordered_map<std::string, Val> expectedValues;
+
+        ValueValidator& eq(std::string name, double value);
+        ValueValidator& neq(std::string name, double value);
+
+        Result<void> validate(std::string str);
+    };
+
+    ValueValidator m_validator;
+
+  public:
+    Status(utils::Board board, std::vector<utils::Board> connectedBoards);
+
+    Status(Status&& other);
+    Status& operator=(Status&& other);
 
     Status(const Status&) = delete;
     Status& operator=(const Status&) = delete;
