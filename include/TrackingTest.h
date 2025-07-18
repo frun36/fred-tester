@@ -41,4 +41,37 @@ class TrackingTest {
 
     void start(double expectedInterval = -1.);
     void stop(bool doLogSummary = true);
+
+    TrackingTest(TrackingTest&& other) noexcept :
+        m_testName(std::move(other.m_testName)),
+        m_mapi(std::move(other.m_mapi)),
+        m_expectedInterval(other.m_expectedInterval),
+        m_maxLineLength(other.m_maxLineLength),
+        m_pattern(std::move(other.m_pattern)),
+        m_valueValidator(std::move(other.m_valueValidator)),
+        m_worker(std::move(other.m_worker)), 
+        m_running(other.m_running.load()),
+        m_stopFlag(other.m_stopFlag.load()),
+        m_stats(std::move(other.m_stats)) {}
+
+    TrackingTest& operator=(TrackingTest&& other) noexcept {
+        if (this != &other) {
+            m_testName = std::move(other.m_testName);
+            m_mapi = std::move(other.m_mapi);
+            m_expectedInterval = other.m_expectedInterval;
+            m_maxLineLength = other.m_maxLineLength;
+            m_pattern = std::move(other.m_pattern);
+            m_valueValidator = std::move(other.m_valueValidator);
+            m_worker = std::move(other.m_worker);
+            m_running = other.m_running.load();
+            m_stopFlag = other.m_stopFlag.load();
+            m_stats = std::move(other.m_stats);
+        }
+        return *this;
+    }
+
+    TrackingTest(const TrackingTest&) = delete;
+    TrackingTest& operator=(const TrackingTest&) = delete;
+
+    virtual ~TrackingTest() = default;
 };

@@ -10,8 +10,8 @@ class TcmHistogramsTracking: public TrackingTest {
   public:
     TcmHistogramsTracking(bool selectableHistogramEnabled) :
         TrackingTest(
-            "TCM HISTOGRAMS TRACKING",
-            MapiHandler::get(utils::topic(utils::TCM, "HISTOGRAMS")),
+            "TCM0 HISTOGRAMS TRACKING",
+            MapiHandler::get(utils::topic(utils::TCM0, "HISTOGRAMS")),
             1.0,
             128,
             std::format(
@@ -33,10 +33,10 @@ class TcmHistogramsTracking: public TrackingTest {
 
 class PmHistogramsTracking: public TrackingTest {
   public:
-    PmHistogramsTracking(bool adc0, bool adc1, bool time) :
+    PmHistogramsTracking(utils::Board board, bool adc0, bool adc1, bool time) :
         TrackingTest(
-            "PM HISTOGRAMS TRACKING",
-            MapiHandler::get(utils::topic(utils::PM, "HISTOGRAMS")),
+            std::format("{} HISTOGRAMS TRACKING", board.name()),
+            MapiHandler::get(utils::topic(board, "HISTOGRAMS")),
             1.0,
             128,
             std::format(

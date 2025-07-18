@@ -74,7 +74,7 @@ class CounterRates: public TrackingTest {
         std::string testName;
         size_t numberOfCounters;
 
-        double& currentInterval;
+        double currentInterval;
         std::vector<utils::Welford> rates;
         utils::Welford elapsed;
         utils::Welford newValuesInterval;
@@ -87,20 +87,43 @@ class CounterRates: public TrackingTest {
         ValueTracker(
             std::string testName,
             size_t numberOfCounters,
-            double& currentInterval
+            double currentInterval
         );
     };
 
     ValueTracker m_valueTracker;
+
     static const std::string TcmPattern;
     static const std::string PmPattern;
 
     void logSummary() const override;
 
   public:
-    CounterRates(std::string boardName);
+    CounterRates(utils::Board board);
+
+    CounterRates(CounterRates&& other) :
+        TrackingTest(std::move(other)),
+        m_valueTracker(std::move(other.m_valueTracker)) {
+        m_valueValidator = std::ref(m_valueTracker);
+    }
+
+    CounterRates& operator=(CounterRates&& other) {
+        if (this != &other) {
+            TrackingTest::operator=(std::move(other));
+            m_valueTracker = std::move(other.m_valueTracker);
+            m_valueValidator = std::ref(m_valueTracker);
+        }
+        return *this;
+    }
+
+    CounterRates(const CounterRates&) = delete;
+    CounterRates& operator=(const CounterRates&) = delete;
 
     void resetCounters();
+
+    void setInterval(double newInterval) {
+        m_valueTracker.currentInterval = newInterval;
+    }
 };
 
 } // namespace tests

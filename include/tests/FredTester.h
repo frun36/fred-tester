@@ -1,29 +1,30 @@
 #pragma once
 
+#include <utility>
+
 #include "tests/CounterRates.h"
 #include "tests/Parameters.h"
 #include "tests/Status.h"
 #include "tests/TesterConfig.h"
+#include "utils.h"
 
 namespace tests {
 
 class FredTester {
   private:
     TesterConfig cfg;
-    Status tcmStatus {utils::TCM};
-    Status pmStatus {utils::PM};
-    CounterRates tcmCounterRates {utils::TCM};
-    CounterRates pmCounterRates {utils::PM};
+    std::vector<std::pair<utils::Board, Status>> status;
+    std::vector<std::pair<utils::Board, CounterRates>> counterRates;
 
   public:
-    FredTester(TesterConfig cfg) : cfg(cfg) {}
+    FredTester(TesterConfig cfg);
 
     bool setup();
     void changeReadInterval();
     void resetReadInterval();
     void run();
     void tcmHistograms();
-    void pmHistograms();
+    void pmHistograms(utils::Board board);
     void cleanup();
     void finish();
 };

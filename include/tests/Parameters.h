@@ -6,11 +6,9 @@ namespace tests {
 
 class Parameters: public TestSuite {
   private:
-    std::string boardName;
-
-    CommandTest writeLSB15(std::string boardName) {
-        return TestBuilder("{} WRITE", boardName)
-            .mapiName(utils::topic(boardName, "PARAMETERS"))
+    CommandTest writeLSB15(utils::Board board) {
+        return TestBuilder("{} WRITE", board.name())
+            .mapiName(utils::topic(board, "PARAMETERS"))
             .command("GBT_EMULATED_TRIGGERS_PATTERN_LSB,WRITE,0x0F")
             .pattern(R"(GBT_EMULATED_TRIGGERS_PATTERN_LSB,({})\n)", utils::FLT)
             .withValueValidator([](auto match) -> Result<void> {
@@ -25,9 +23,9 @@ class Parameters: public TestSuite {
             .build();
     }
 
-    CommandTest writeElectronicMSB255(std::string boardName) {
-        return TestBuilder("{} WRITE_ELECTRONIC", boardName)
-            .mapiName(utils::topic(boardName, "PARAMETERS"))
+    CommandTest writeElectronicMSB255(utils::Board board) {
+        return TestBuilder("{} WRITE_ELECTRONIC", board.name())
+            .mapiName(utils::topic(board, "PARAMETERS"))
             .command("GBT_EMULATED_TRIGGERS_PATTERN_MSB,WRITE_ELECTRONIC,0xFF")
             .pattern(R"(GBT_EMULATED_TRIGGERS_PATTERN_MSB,({})\n)", utils::FLT)
             .withValueValidator([](auto match) -> Result<void> {
@@ -43,11 +41,11 @@ class Parameters: public TestSuite {
     }
 
     CommandTest doubleRead(
-        std::string boardName,
+        utils::Board board,
         std::pair<double, double> expected
     ) {
-        return TestBuilder("{} READ", boardName)
-            .mapiName(utils::topic(boardName, "PARAMETERS"))
+        return TestBuilder("{} READ", board.name())
+            .mapiName(utils::topic(board, "PARAMETERS"))
             .command(
                 "GBT_EMULATED_TRIGGERS_PATTERN_MSB,READ\n"
                 "GBT_EMULATED_TRIGGERS_PATTERN_LSB,READ\n"
@@ -74,9 +72,9 @@ class Parameters: public TestSuite {
             .build();
     }
 
-    CommandTest writeOutOfRangeLSB(std::string boardName) {
-        return TestBuilder("{} WRITE OUT OF RANGE", boardName)
-            .mapiName(utils::topic(boardName, "PARAMETERS"))
+    CommandTest writeOutOfRangeLSB(utils::Board board) {
+        return TestBuilder("{} WRITE OUT OF RANGE", board.name())
+            .mapiName(utils::topic(board, "PARAMETERS"))
             .command("GBT_EMULATED_TRIGGERS_PATTERN_LSB,WRITE,-36")
             .pattern(
                 R"((?:.*:\s)+attempted to write a value outside the valid range [{}; {}] - value {})",
@@ -90,9 +88,9 @@ class Parameters: public TestSuite {
             .build();
     }
 
-    CommandTest readNonexistent(std::string boardName) {
-        return TestBuilder("{} READ NONEXISTENT", boardName)
-            .mapiName(utils::topic(boardName, "PARAMETERS"))
+    CommandTest readNonexistent(utils::Board board) {
+        return TestBuilder("{} READ NONEXISTENT", board.name())
+            .mapiName(utils::topic(board, "PARAMETERS"))
             .command("HELOU_NONEXISTENT_PARAM,READ")
             .pattern(
                 R"((?:.*:\s)+Parameter {} not found on the board.)",
@@ -106,11 +104,11 @@ class Parameters: public TestSuite {
     }
 
     CommandTest doubleWrite(
-        std::string boardName,
+        utils::Board board,
         std::pair<double, double> values
     ) {
-        return TestBuilder("{} READ", boardName)
-            .mapiName(utils::topic(boardName, "PARAMETERS"))
+        return TestBuilder("{} READ", board.name())
+            .mapiName(utils::topic(board, "PARAMETERS"))
             .command(
                 std::format(
                     "GBT_EMULATED_TRIGGERS_PATTERN_MSB,WRITE,{}\n"
@@ -141,9 +139,9 @@ class Parameters: public TestSuite {
             .build();
     }
 
-    CommandTest doubleWriteOutOfRangeMSB(std::string boardName) {
-        return TestBuilder("{} READ", boardName)
-            .mapiName(utils::topic(boardName, "PARAMETERS"))
+    CommandTest doubleWriteOutOfRangeMSB(utils::Board board) {
+        return TestBuilder("{} READ", board.name())
+            .mapiName(utils::topic(board, "PARAMETERS"))
             .command(
                 "GBT_EMULATED_TRIGGERS_PATTERN_MSB,WRITE,-36\n"
                 "GBT_EMULATED_TRIGGERS_PATTERN_LSB,WRITE,0x00\n"
@@ -162,16 +160,16 @@ class Parameters: public TestSuite {
     }
 
   public:
-    Parameters(std::string boardName) :
+    Parameters(utils::Board board) :
         TestSuite({
-            writeLSB15(boardName),
-            writeElectronicMSB255(boardName),
-            writeOutOfRangeLSB(boardName),
-            doubleRead(boardName, {0xFF, 0x0F}),
-            readNonexistent(boardName),
-            doubleWrite(boardName, {0xBE, 0xEF}),
-            doubleWriteOutOfRangeMSB(boardName),
-            doubleRead(boardName, {0xBE, 0xEF}),
+            writeLSB15(board),
+            writeElectronicMSB255(board),
+            writeOutOfRangeLSB(board),
+            doubleRead(board, {0xFF, 0x0F}),
+            readNonexistent(board),
+            doubleWrite(board, {0xBE, 0xEF}),
+            doubleWriteOutOfRangeMSB(board),
+            doubleRead(board, {0xBE, 0xEF}),
         }) {}
 };
 

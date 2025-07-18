@@ -12,10 +12,10 @@ class TcmHistogramsSingle: public CommandTest {
   public:
     TcmHistogramsSingle(bool selectableHistogramEnabled) :
         CommandTest(TestBuilder(
-                 "TCM HISTOGRAMS READ{}",
+                 "TCM0 HISTOGRAMS READ{}",
                  selectableHistogramEnabled ? " SEL" : ""
         )
-                 .mapiName(utils::topic(utils::TCM, "HISTOGRAMS"))
+                 .mapiName(utils::topic(utils::TCM0, "HISTOGRAMS"))
                  .command("READ")
                  .withMaxLineLength(128)
                  .pattern(
@@ -62,14 +62,14 @@ static inline std::string pmHistRegex(bool adc0, bool adc1, bool time) {
 
 class PmHistogramsSingle: public CommandTest {
   public:
-    PmHistogramsSingle(bool adc0, bool adc1, bool time) :
+    PmHistogramsSingle(utils::Board board, bool adc0, bool adc1, bool time) :
         CommandTest(TestBuilder(
                  "PM HISTOGRAMS READ ({}, {}, {})",
                  adc0 ? std::string("ADC0") : std::string("-"),
                  adc1 ? std::string("ADC1") : std::string("-"),
                  time ? std::string("TIME") : std::string("-")
         )
-                 .mapiName(utils::topic(utils::PM, "HISTOGRAMS"))
+                 .mapiName(utils::topic(board, "HISTOGRAMS"))
                  .command("READ")
                  .withMaxLineLength(128)
                  .pattern(

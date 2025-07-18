@@ -9,7 +9,7 @@ class ResetErrors: public CommandTest {
   public:
     ResetErrors() :
         CommandTest(TestBuilder("RESET_ERRORS")
-                 .mapiName(utils::topic(utils::TCM, "RESET_ERRORS"))
+                 .mapiName(utils::topic(utils::TCM0, "RESET_ERRORS"))
                  .command("")
                  .pattern(R"(SUCCESS)")
                  .withoutValueValidator()

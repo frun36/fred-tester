@@ -3,7 +3,6 @@
 #include <unordered_map>
 
 #include "Logger.h"
-#include "utils.h"
 
 // memory leak after strdup, not a big deal here
 MapiHandler::MapiInfo::MapiInfo(

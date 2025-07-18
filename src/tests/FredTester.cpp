@@ -1,5 +1,6 @@
 #include "tests/FredTester.h"
 
+#include <algorithm>
 #include <thread>
 
 #include "MapiHandler.h"
@@ -13,6 +14,16 @@
 using namespace std::chrono;
 
 namespace tests {
+
+FredTester::FredTester(TesterConfig cfg) : cfg(cfg) {
+    for (auto board : cfg.statusTracking) {
+        status.emplace_back(board, Status(board));
+    }
+
+    for (auto board : cfg.counterRatesTracking) {
+        counterRates.emplace_back(board, CounterRates(board));
+    }
+}
 
 bool FredTester::setup() {
     bool res;
@@ -34,11 +45,12 @@ bool FredTester::setup() {
     }
 
     Logger::info("MANAGER", "Sending START command");
-    MapiHandler::sendCommand(utils::topic(utils::TCM, "MANAGER"), "START");
+    MapiHandler::sendCommand(utils::topic(utils::TCM0, "MANAGER"), "START");
     std::this_thread::sleep_for(1s);
 
-    tcmStatus.start();
-    pmStatus.start();
+    for (auto& s : status) {
+        s.second.start();
+    }
 
     if (cfg.setupConfiguration) {
         res = Configurations(*cfg.setupConfiguration).runAndLog();
@@ -48,8 +60,9 @@ bool FredTester::setup() {
         std::this_thread::sleep_for(2.5s);
     }
 
-    tcmCounterRates.start();
-    pmCounterRates.start();
+    for (auto& c : counterRates) {
+        c.second.start();
+    }
 
     return true;
 }
@@ -57,78 +70,83 @@ bool FredTester::setup() {
 void FredTester::changeReadInterval() {
     Logger::info("COUNTER_RATES", "Read interval change");
     MapiHandler::sendCommand(
-        topic(TCM, "PARAMETERS"),
+        topic(utils::TCM0, "PARAMETERS"),
         "COUNTER_READ_INTERVAL,WRITE,3"
     );
-    tcmCounterRates.start(0.5 / 2.); // 2x faster responses than read interval
-    pmCounterRates.start(0.5 / 2.);
+    for (auto& c : counterRates) {
+        c.second.start(0.5 / 2.);
+        c.second.setInterval(0.5 / 2.);
+    }
 
     std::this_thread::sleep_for(5s);
-    tcmCounterRates.stop(false);
-    pmCounterRates.stop(false);
+    for (auto& c : counterRates) {
+        c.second.stop(false);
+    }
     std::this_thread::sleep_for(10ms);
 }
 
 void FredTester::resetReadInterval() {
     Logger::info("COUNTER_RATES", "Read interval change");
     MapiHandler::sendCommand(
-        topic(TCM, "PARAMETERS"),
+        topic(utils::TCM0, "PARAMETERS"),
         "COUNTER_READ_INTERVAL,WRITE,4"
     );
-    tcmCounterRates.start(1. / 2.); // 2x faster responses than read interval
-    pmCounterRates.start(1. / 2.);
+    for (auto& c : counterRates) {
+        c.second.start(1. / 2.);
+        c.second.setInterval(1. / 2.);
+    }
 }
 
 void FredTester::tcmHistograms() {
-    MapiHandler::sendCommand(topic(utils::TCM, "HISTOGRAMS"), "STOP");
+    MapiHandler::sendCommand(topic(utils::TCM0, "HISTOGRAMS"), "STOP");
     std::this_thread::sleep_for(2s);
 
-    MapiHandler::sendCommand(topic(utils::TCM, "HISTOGRAMS"), "COUNTER,0");
+    MapiHandler::sendCommand(topic(utils::TCM0, "HISTOGRAMS"), "COUNTER,0");
     std::this_thread::sleep_for(100ms);
     TcmHistogramsSingle(false).runAndLog();
 
-    MapiHandler::sendCommand(topic(utils::TCM, "HISTOGRAMS"), "COUNTER,1");
+    MapiHandler::sendCommand(topic(utils::TCM0, "HISTOGRAMS"), "COUNTER,1");
     std::this_thread::sleep_for(100ms);
     TcmHistogramsSingle(true).runAndLog();
 
     TcmHistogramsTracking tcmHistogramsTracking {true};
-    MapiHandler::sendCommand(topic(utils::TCM, "HISTOGRAMS"), "START");
+    MapiHandler::sendCommand(topic(utils::TCM0, "HISTOGRAMS"), "START");
     tcmHistogramsTracking.start();
     std::this_thread::sleep_for(5s);
-    MapiHandler::sendCommand(topic(utils::TCM, "HISTOGRAMS"), "RESET");
+    MapiHandler::sendCommand(topic(utils::TCM0, "HISTOGRAMS"), "RESET");
     std::this_thread::sleep_for(5s);
-    MapiHandler::sendCommand(topic(utils::TCM, "HISTOGRAMS"), "STOP");
+    MapiHandler::sendCommand(topic(utils::TCM0, "HISTOGRAMS"), "STOP");
     tcmHistogramsTracking.stop();
 }
 
-void FredTester::pmHistograms() {
-    MapiHandler::sendCommand(topic(utils::PM, "HISTOGRAMS"), "STOP");
+void FredTester::pmHistograms(utils::Board board) {
+    MapiHandler::sendCommand(topic(board, "HISTOGRAMS"), "STOP");
     std::this_thread::sleep_for(2s);
 
-    MapiHandler::sendCommand(topic(utils::PM, "HISTOGRAMS"), "SELECT");
+    MapiHandler::sendCommand(topic(board, "HISTOGRAMS"), "SELECT");
     std::this_thread::sleep_for(100ms);
-    PmHistogramsSingle(false, false, false).runAndLog();
+    PmHistogramsSingle(board, false, false, false).runAndLog();
     std::this_thread::sleep_for(100ms);
 
-    MapiHandler::sendCommand(topic(utils::PM, "HISTOGRAMS"), "SELECT,ADC0");
+    MapiHandler::sendCommand(topic(board, "HISTOGRAMS"), "SELECT,ADC0");
     std::this_thread::sleep_for(100ms);
-    PmHistogramsSingle(true, false, false).runAndLog();
+    PmHistogramsSingle(board, true, false, false).runAndLog();
 
-    MapiHandler::sendCommand(topic(utils::PM, "HISTOGRAMS"), "SELECT,ADC1");
+    MapiHandler::sendCommand(topic(board, "HISTOGRAMS"), "SELECT,ADC1");
     std::this_thread::sleep_for(100ms);
-    PmHistogramsSingle(false, true, false).runAndLog();
+    PmHistogramsSingle(board, false, true, false).runAndLog();
 
-    MapiHandler::sendCommand(topic(utils::PM, "HISTOGRAMS"), "SELECT,TIME");
+    MapiHandler::sendCommand(topic(board, "HISTOGRAMS"), "SELECT,TIME");
     std::this_thread::sleep_for(100ms);
-    PmHistogramsSingle(false, false, true).runAndLog();
+    PmHistogramsSingle(board, false, false, true).runAndLog();
 
-    PmHistogramsTracking pmHistogramsTracking {false, false, true};
-    MapiHandler::sendCommand(topic(utils::PM, "HISTOGRAMS"), "START");
+    PmHistogramsTracking pmHistogramsTracking {board, false, false, true};
+    MapiHandler::sendCommand(topic(board, "HISTOGRAMS"), "START");
     pmHistogramsTracking.start();
     std::this_thread::sleep_for(5s);
-    MapiHandler::sendCommand(topic(utils::PM, "HISTOGRAMS"), "RESET");
+    MapiHandler::sendCommand(topic(board, "HISTOGRAMS"), "RESET");
     std::this_thread::sleep_for(5s);
-    MapiHandler::sendCommand(topic(utils::PM, "HISTOGRAMS"), "STOP");
+    MapiHandler::sendCommand(topic(board, "HISTOGRAMS"), "STOP");
     pmHistogramsTracking.stop();
 }
 
@@ -145,11 +163,13 @@ void FredTester::cleanup() {
 }
 
 void FredTester::finish() {
-    tcmStatus.stop();
-    pmStatus.stop();
+    for (auto& s : status) {
+        s.second.stop();
+    }
 
-    tcmCounterRates.stop(false);
-    pmCounterRates.stop(false);
+    for (auto& c : counterRates) {
+        c.second.stop(false);
+    }
 }
 
 void FredTester::run() {
@@ -159,25 +179,22 @@ void FredTester::run() {
 
     std::this_thread::sleep_for(1s);
 
-    if (cfg.tcmParameters) {
-        Parameters(utils::TCM).run();
-        std::this_thread::sleep_for(2s);
-    }
-    if (!cfg.pmParameters.empty()) {
-        Parameters(utils::PM).run();
+    for (auto board : cfg.parameters) {
+        Parameters(board).run();
         std::this_thread::sleep_for(2s);
     }
 
-    if (cfg.tcmHistograms) {
-        tcmHistograms();
-    }
-    if (!cfg.pmHistograms.empty()) {
-        pmHistograms();
+    for (auto board : cfg.histograms) {
+        if (board.isTcm())
+            tcmHistograms();
+        else
+            pmHistograms(board);
     }
 
     std::this_thread::sleep_for(std::chrono::duration<double>(cfg.mainSleep));
-    tcmCounterRates.stop();
-    pmCounterRates.stop();
+    for (auto& c : counterRates) {
+        c.second.start();
+    }
     std::this_thread::sleep_for(10ms);
 
     if (cfg.readIntervalChange) {
@@ -187,14 +204,16 @@ void FredTester::run() {
 
     std::this_thread::sleep_for(2s);
 
-    if (cfg.tcmResetCounters) {
-        tcmCounterRates.resetCounters();
-        std::this_thread::sleep_for(5s);
-    }
-
-    if (!cfg.pmResetCounters.empty()) {
-        pmCounterRates.resetCounters();
-        std::this_thread::sleep_for(5s);
+    for (auto board : cfg.resetCounters) {
+        auto it = std::find_if(
+            counterRates.begin(),
+            counterRates.end(),
+            [board](const auto& p) { return p.first == board; }
+        );
+        if (it != counterRates.end()) {
+            it->second.resetCounters();
+            std::this_thread::sleep_for(5s);
+        }
     }
 
     cleanup();

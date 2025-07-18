@@ -15,7 +15,7 @@ class Logger {
         return logger;
     }
 
-    void print(std::string s) {
+    void print(std::ostream& os, std::string s) {
         std::lock_guard<std::mutex> lock(m_mtx);
 
         auto now = std::chrono::system_clock::now();
@@ -27,13 +27,13 @@ class Logger {
         std::tm buf;
         localtime_r(&in_time_t, &buf);
 
-        std::cout << "\033[2m" << std::put_time(&buf, "%Y-%m-%d %H:%M:%S")
-                  << '.' << std::setw(3) << std::setfill('0') << ms.count()
-                  << "\033[0m " << s << '\n';
+        os << "\033[2m" << std::put_time(&buf, "%Y-%m-%d %H:%M:%S") << '.'
+           << std::setw(3) << std::setfill('0') << ms.count() << "\033[0m " << s
+           << '\n';
     }
 
-    static void log(std::string s) {
-        getInstance().print(s);
+    static void log(std::ostream& os, std::string s) {
+        getInstance().print(os, s);
     }
 
   public:
@@ -52,6 +52,7 @@ class Logger {
         }
 
         return log(
+            std::cout,
             std::format(
                 "\033[34mDEBUG\033[0m [{}] {}",
                 name,
@@ -67,6 +68,7 @@ class Logger {
         Args&&... args
     ) {
         return log(
+            std::cout,
             std::format(
                 "\033[32mINFO \033[0m [{}] {}",
                 name,
@@ -82,6 +84,7 @@ class Logger {
         Args&&... args
     ) {
         return log(
+            std::cerr,
             std::format(
                 "\033[33mWARN \033[0m [{}] {}",
                 name,
@@ -97,6 +100,7 @@ class Logger {
         Args&&... args
     ) {
         return log(
+            std::cerr,
             std::format(
                 "\033[31mERROR\033[0m [{}] {}",
                 name,

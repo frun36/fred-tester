@@ -33,7 +33,7 @@ int main(int argc, char** argv) {
             "Failed to parse program arguments: {}",
             err.what()
         );
-        std::cout << program;
+        std::cerr << program;
         std::exit(1);
     }
 

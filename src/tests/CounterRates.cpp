@@ -127,19 +127,19 @@ const std::string CounterRates::PmPattern =
     );
 // clang-format on
 
-CounterRates::CounterRates(std::string boardName) :
+CounterRates::CounterRates(Board board) :
     TrackingTest(
-        boardName + " COUNTER_RATES TRACKER",
-        MapiHandler::get(topic(boardName, "COUNTER_RATES")),
+        board.name() + " COUNTER_RATES TRACKER",
+        MapiHandler::get(topic(board, "COUNTER_RATES")),
         0.5,
         0,
-        type(boardName) == "TCM" ? TcmPattern : PmPattern,
+        board.isTcm() ? TcmPattern : PmPattern,
         nullptr
     ),
     m_valueTracker(
         m_testName,
-        type(boardName) == "TCM" ? 15 : 24,
-        this->m_expectedInterval
+        board.isTcm() ? 15 : 24,
+        m_expectedInterval
     ) {
     m_valueValidator =
         std::ref(m_valueTracker); // avoid initialization order problems
@@ -216,7 +216,7 @@ void CounterRates::logSummary() const {
 CounterRates::ValueTracker::ValueTracker(
     std::string testName,
     size_t numberOfCounters,
-    double& currentInterval
+    double currentInterval
 ) :
     testName(testName),
     numberOfCounters(numberOfCounters),

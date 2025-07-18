@@ -1,27 +1,27 @@
 #pragma once
 
+#include <algorithm>
 #include <optional>
 #include <string>
 #include <toml++/toml.hpp>
 #include <vector>
 
 #include "Result.h"
+#include "utils.h"
 
 struct TesterConfig {
-    using Boards = std::vector<std::string>;
+    using Boards = std::vector<utils::Board>;
 
     const bool resetSystem;
     const bool setupResetErrors;
     const Boards statusTracking;
     const std::optional<std::string> setupConfiguration;
-    const bool tcmParameters;
-    const Boards pmParameters;
-    const bool tcmHistograms;
-    const Boards pmHistograms;
+    const Boards counterRatesTracking;
+    const Boards parameters;
+    const Boards histograms;
     const double mainSleep;
     const bool readIntervalChange;
-    const bool tcmResetCounters;
-    const Boards pmResetCounters;
+    const Boards resetCounters;
     const bool cleanupResetErrors;
     const std::optional<std::string> cleanupConfiguration;
 
@@ -45,7 +45,9 @@ struct TesterConfig {
         if (auto array = setup.get_as<toml::array>("connected_boards")) {
             for (const auto& node : *array) {
                 if (auto val = node.value<std::string>()) {
-                    connectedBoards.push_back(*val);
+                    utils::Board board;
+                    TRY_ASSIGN(utils::Board::fromName(*val), board);
+                    connectedBoards.push_back(board);
                 } else {
                     return err("connected_boards must contain only strings");
                 }
@@ -69,7 +71,15 @@ struct TesterConfig {
                     return err("{} must be an array", std::string(name));
                 for (const auto& n : *arr) {
                     if (auto val = n.value<std::string>()) {
-                        boards.push_back(*val);
+                        utils::Board board;
+                        TRY_ASSIGN(utils::Board::fromName(*val), board);
+                        if (!std::ranges::contains(connectedBoards, board)) {
+                            return err(
+                                "Board {} is not declared as connected",
+                                board.name()
+                            );
+                        }
+                        boards.push_back(board);
                     } else {
                         return err(
                             "{} array must contain only strings",
@@ -88,8 +98,7 @@ struct TesterConfig {
         auto parseOptionalString = [](toml::node* node, std::string_view name
                                    ) -> Result<std::optional<std::string>> {
             if (!node)
-                return std::optional<
-                    std::string> {}; // treat missing as nullopt
+                return std::optional<std::string> {};
             if (node->is_boolean()) {
                 if (auto b = node->value<bool>(); b && !*b)
                     return std::optional<std::string> {};
@@ -137,40 +146,33 @@ struct TesterConfig {
         if (!setupConfiguration)
             return std::unexpected(setupConfiguration.error());
 
-        auto tcmParameters = parseBool(tests, "tcm_parameters");
-        if (!tcmParameters)
-            return std::unexpected(tcmParameters.error());
+        auto counterRatesTracking = parseBoards(
+            setup.get("counter_rates_tracking"),
+            "counter_rates_tracking"
+        );
+        if (!counterRatesTracking)
+            return std::unexpected(counterRatesTracking.error());
 
-        auto pmParameters =
-            parseBoards(tests.get("pm_parameters"), "pm_parameters");
-        if (!pmParameters)
-            return std::unexpected(pmParameters.error());
+        auto parameters = parseBoards(tests.get("parameters"), "parameters");
+        if (!parameters)
+            return std::unexpected(parameters.error());
 
         auto readIntervalChange = parseBool(tests, "read_interval_change");
         if (!readIntervalChange)
             return std::unexpected(readIntervalChange.error());
 
-        auto tcmHistograms = parseBool(tests, "tcm_histograms");
-        if (!tcmHistograms)
-            return std::unexpected(tcmHistograms.error());
-
-        auto pmHistograms =
-            parseBoards(tests.get("pm_histograms"), "pm_histograms");
-        if (!pmHistograms)
-            return std::unexpected(pmHistograms.error());
+        auto histograms = parseBoards(tests.get("histograms"), "histograms");
+        if (!histograms)
+            return std::unexpected(histograms.error());
 
         auto mainSleep = parseDouble(tests, "main_sleep");
         if (!mainSleep)
             return std::unexpected(mainSleep.error());
 
-        auto tcmResetCounters = parseBool(tests, "tcm_reset_counters");
-        if (!tcmResetCounters)
-            return std::unexpected(tcmResetCounters.error());
-
-        auto pmResetCounters =
-            parseBoards(tests.get("pm_reset_counters"), "pm_reset_counters");
-        if (!pmResetCounters)
-            return std::unexpected(pmResetCounters.error());
+        auto resetCounters =
+            parseBoards(tests.get("reset_counters"), "reset_counters");
+        if (!resetCounters)
+            return std::unexpected(resetCounters.error());
 
         auto cleanupResetErrors = parseBool(cleanup, "reset_errors");
         if (!cleanupResetErrors)
@@ -191,14 +193,12 @@ struct TesterConfig {
             *setupResetErrors,
             *statusTracking,
             *setupConfiguration,
-            *tcmParameters,
-            *pmParameters,
-            *tcmHistograms,
-            *pmHistograms,
+            *counterRatesTracking,
+            *parameters,
+            *histograms,
             *mainSleep,
             *readIntervalChange,
-            *tcmResetCounters,
-            *pmResetCounters,
+            *resetCounters,
             *cleanupResetErrors,
             *cleanupConfiguration,
         };

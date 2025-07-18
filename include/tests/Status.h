@@ -4,23 +4,21 @@
 #include "TrackingTest.h"
 #include "utils.h"
 
-using namespace utils;
-
 namespace tests {
 
 class Status: public TrackingTest {
   public:
-    Status(std::string boardName) :
+    Status(utils::Board board) :
         TrackingTest(
-            boardName + " STATUS TRACKER",
-            MapiHandler::get(topic(boardName, "STATUS")),
+            board.name() + " STATUS TRACKER",
+            MapiHandler::get(topic(board, "STATUS")),
             1.0,
             0,
             std::format(
                 R"((?:(?!IS_BOARD_OK,){},{}\n)*IS_BOARD_OK,({})\n)", // only matching group - after IS_BOARD_OK
-                STR,
-                FLT,
-                FLT
+                utils::STR,
+                utils::FLT,
+                utils::FLT
             ),
             [](auto match) -> Result<void> {
                 double val = std::stod(match[1]);
@@ -30,6 +28,12 @@ class Status: public TrackingTest {
                     return {};
             }
         ) {}
+
+    Status(Status&&) = default;
+    Status& operator=(Status&&) = default;
+
+    Status(const Status&) = delete;
+    Status& operator=(const Status&) = delete;
 };
 
 } // namespace tests
