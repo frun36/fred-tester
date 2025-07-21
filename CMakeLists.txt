@@ -19,7 +19,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-add_compile_options(-fsanitize=address -g -Wall -Wextra -Wpedantic)
+add_compile_options(-g -Wall -Wextra -Wpedantic)
 
 add_executable(fred-tester
     src/main.cpp
@@ -56,5 +56,6 @@ target_precompile_headers(fred-tester PRIVATE
 target_compile_definitions(fred-tester PUBLIC TOML_EXCEPTIONS=0)
 
 target_link_libraries(fred-tester ${DIM_LIBRARY} pthread)
-target_link_options(fred-tester PRIVATE -fsanitize=address)
+# add_compile_options(-fsanitize=address)
+# target_link_options(fred-tester PRIVATE -fsanitize=address)
 

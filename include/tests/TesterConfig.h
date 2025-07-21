@@ -15,6 +15,7 @@ struct TesterConfig {
 
     const Boards connectedBoards;
     const bool resetSystem;
+    const bool managerStart;
     const bool setupResetErrors;
     const Boards statusTracking;
     const std::optional<std::string> setupConfiguration;

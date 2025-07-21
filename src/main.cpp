@@ -72,4 +72,6 @@ int main(int argc, char** argv) {
         tests::FredTester tester(cfg);
         tester.run();
     }
+
+    return 0;
 }

@@ -110,6 +110,10 @@ Result<TesterConfig> TesterConfig::fromToml(const toml::table& t) {
     if (!resetSystem)
         return std::unexpected(resetSystem.error());
 
+    auto managerStart = parseBool(setup, "manager_start");
+    if (!managerStart)
+        return std::unexpected(managerStart.error());
+
     auto setupResetErrors = parseBool(setup, "reset_errors");
     if (!setupResetErrors)
         return std::unexpected(setupResetErrors.error());
@@ -169,6 +173,7 @@ Result<TesterConfig> TesterConfig::fromToml(const toml::table& t) {
     return TesterConfig {
         connectedBoards,
         *resetSystem,
+        *managerStart,
         *setupResetErrors,
         *statusTracking,
         *setupConfiguration,

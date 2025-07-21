@@ -37,6 +37,12 @@ bool FredTester::setup() {
         std::this_thread::sleep_for(1s);
     }
 
+    if (cfg.managerStart) {
+        Logger::info("MANAGER", "Sending START command");
+        MapiHandler::sendCommand(utils::topic(utils::TCM0, "MANAGER"), "START");
+        std::this_thread::sleep_for(1s);
+    }
+
     if (cfg.setupResetErrors) {
         res = ResetErrors().runAndLog();
         if (!res) {
@@ -44,10 +50,6 @@ bool FredTester::setup() {
         }
         std::this_thread::sleep_for(1s);
     }
-
-    Logger::info("MANAGER", "Sending START command");
-    MapiHandler::sendCommand(utils::topic(utils::TCM0, "MANAGER"), "START");
-    std::this_thread::sleep_for(1s);
 
     for (auto& s : status) {
         s.second.start();
@@ -175,6 +177,7 @@ void FredTester::finish() {
 
 void FredTester::run() {
     if (!setup()) {
+        finish();
         return;
     }
 
@@ -194,7 +197,7 @@ void FredTester::run() {
 
     std::this_thread::sleep_for(std::chrono::duration<double>(cfg.mainSleep));
     for (auto& c : counterRates) {
-        c.second.start();
+        c.second.stop();
     }
     std::this_thread::sleep_for(10ms);
 

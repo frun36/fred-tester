@@ -1,6 +1,7 @@
 [setup]
 connected_boards = ["TCM0", "PMA0"]
 reset_system = true
+manager_start = true
 reset_errors = true
 status_tracking = true # all connected boards
 configuration = "laser_1124hz_or_trg"
