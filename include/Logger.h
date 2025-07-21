@@ -1,45 +1,42 @@
 #pragma once
 
 #include <format>
-#include <iomanip>
-#include <iostream>
 #include <mutex>
+#include <optional>
+
+#include "dis.hxx"
 
 class Logger {
   private:
+    enum class LogLevel { Debug, Info, Warn, Error };
+
+    std::string_view logLevelStr(LogLevel lvl) {
+        switch (lvl) {
+            case LogLevel::Debug:
+                return "\033[34mDEBUG\033[0m";
+            case LogLevel::Info:
+                return "\033[32mINFO \033[0m";
+            case LogLevel::Warn:
+                return "\033[33mWARN \033[0m";
+            case LogLevel::Error:
+                return "\033[31mERROR\033[0m";
+            default:
+                return "*****";
+        }
+    }
+
     std::mutex m_mtx;
     bool m_debug = false;
+    DimService* dim = nullptr;
 
-    static Logger& getInstance() {
-        static Logger logger;
-        return logger;
-    }
-
-    void print(std::ostream& os, std::string s) {
-        std::lock_guard<std::mutex> lock(m_mtx);
-
-        auto now = std::chrono::system_clock::now();
-        auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(
-                      now.time_since_epoch()
-                  )
-            % 1000;
-        auto in_time_t = std::chrono::system_clock::to_time_t(now);
-        std::tm buf;
-        localtime_r(&in_time_t, &buf);
-
-        os << "\033[2m" << std::put_time(&buf, "%Y-%m-%d %H:%M:%S") << '.'
-           << std::setw(3) << std::setfill('0') << ms.count() << "\033[0m " << s
-           << '\n';
-    }
-
-    static void log(std::ostream& os, std::string s) {
-        getInstance().print(os, s);
-    }
+    static Logger& getInstance();
+    std::string getTimestamp();
+    void log(LogLevel lvl, const std::string& name, const std::string& msg);
 
   public:
-    static void setDebug(bool debug) {
-        getInstance().m_debug = debug;
-    }
+    static void setDebug(bool debug);
+
+    static void initDim(DimService* dim);
 
     template<typename... Args>
     static void debug(
@@ -51,13 +48,10 @@ class Logger {
             return;
         }
 
-        return log(
-            std::cout,
-            std::format(
-                "\033[34mDEBUG\033[0m [{}] {}",
-                name,
-                std::format(fmt, std::forward<Args>(args)...)
-            )
+        getInstance().log(
+            LogLevel::Debug,
+            name,
+            std::format(fmt, std::forward<Args>(args)...)
         );
     }
 
@@ -67,29 +61,23 @@ class Logger {
         const std::format_string<Args...>& fmt,
         Args&&... args
     ) {
-        return log(
-            std::cout,
-            std::format(
-                "\033[32mINFO \033[0m [{}] {}",
-                name,
-                std::format(fmt, std::forward<Args>(args)...)
-            )
+        getInstance().log(
+            LogLevel::Info,
+            name,
+            std::format(fmt, std::forward<Args>(args)...)
         );
     }
 
     template<typename... Args>
-    static void warning(
+    static void warn(
         const std::string& name,
         const std::format_string<Args...>& fmt,
         Args&&... args
     ) {
-        return log(
-            std::cerr,
-            std::format(
-                "\033[33mWARN \033[0m [{}] {}",
-                name,
-                std::format(fmt, std::forward<Args>(args)...)
-            )
+        getInstance().log(
+            LogLevel::Warn,
+            name,
+            std::format(fmt, std::forward<Args>(args)...)
         );
     }
 
@@ -99,13 +87,10 @@ class Logger {
         const std::format_string<Args...>& fmt,
         Args&&... args
     ) {
-        return log(
-            std::cerr,
-            std::format(
-                "\033[31mERROR\033[0m [{}] {}",
-                name,
-                std::format(fmt, std::forward<Args>(args)...)
-            )
+        getInstance().log(
+            LogLevel::Error,
+            name,
+            std::format(fmt, std::forward<Args>(args)...)
         );
     }
 };

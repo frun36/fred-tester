@@ -56,7 +56,7 @@ Result<CounterRates::Response> CounterRates::Response::fromMatch(
 
     std::vector<uint32_t> counters(numberOfCounters);
     if (!it->matched) {
-        Logger::warning(testName, "No counters");
+        Logger::warn(testName, "No counters");
         counters.clear();
         it += numberOfCounters;
     } else {
@@ -67,7 +67,7 @@ Result<CounterRates::Response> CounterRates::Response::fromMatch(
 
     std::vector<double> rates(numberOfCounters);
     if (!it->matched) {
-        Logger::warning(testName, "No rates");
+        Logger::warn(testName, "No rates");
         rates.clear();
         it += numberOfCounters;
     } else {

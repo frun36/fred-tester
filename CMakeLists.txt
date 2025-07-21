@@ -26,6 +26,8 @@ add_executable(fred-tester
     src/CommandTest.cpp
     src/MapiHandler.cpp
     src/TrackingTest.cpp
+    src/FredTesterRpc.cpp
+    src/Logger.cpp
     src/tests/Configurations.cpp
     src/tests/CounterRates.cpp
     src/tests/FredTester.cpp
