@@ -42,7 +42,7 @@ void FredTesterRpc::rpcHandler() {
     m_cv.notify_one();
 }
 
-Result<void> FredTesterRpc::waitAndExecute() {
+void FredTesterRpc::waitAndExecute() {
     using namespace std::chrono;
 
     std::unique_lock<std::mutex> lock(m_mtx);
@@ -50,6 +50,4 @@ Result<void> FredTesterRpc::waitAndExecute() {
     tests::FredTester tester(*m_cfg);
     tester.run();
     m_cfg = std::nullopt;
-
-    return {};
 }

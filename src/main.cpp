@@ -10,13 +10,18 @@
 
 struct Cli {
     const bool debug;
-    const std::string mode;
+    const bool isSingle;
     const std::string configFile;
 
-    Cli(const argparse::ArgumentParser& program) :
+    Cli(argparse::ArgumentParser&& program) :
         debug(program.get<bool>("--debug")),
-        mode(program.get("mode")),
-        configFile(program.get("--config-file")) {}
+        isSingle(program.is_subcommand_used("single")),
+        configFile(
+            program.is_subcommand_used("single")
+                ? program.at<argparse::ArgumentParser>("single")
+                      .get<std::string>("config-file")
+                : ""
+        ) {}
 
     static Result<Cli> parseArguments(int argc, char** argv) {
         argparse::ArgumentParser program("fred-tester");
@@ -26,15 +31,21 @@ struct Cli {
             .default_value(false)
             .implicit_value(true);
 
-        program.add_argument("mode")
-            .help(
-                "Operation mode: 'single' (single pass of the tester) or 'dim' (run a DIM server accepting commands)"
-            )
-            .choices("single", "dim");
+        argparse::ArgumentParser singleCmd("single");
+        argparse::ArgumentParser dimCmd("dim");
 
-        program.add_argument("-c", "--config-file")
-            .help("Path to the config file (in run mode)")
+        // program.add_argument("mode")
+        //     .help(
+        //         "Operation mode: 'single' (single pass of the tester) or 'dim' (run a DIM server accepting commands)"
+        //     )
+        //     .choices("single", "dim");
+
+        singleCmd.add_argument("config-file")
+            .help("Path to the config file (in 'single' mode)")
             .default_value("../default.toml");
+
+        program.add_subparser(singleCmd);
+        program.add_subparser(dimCmd);
 
         try {
             program.parse_args(argc, argv);
@@ -43,7 +54,7 @@ struct Cli {
             return err("Failed to parse program arguments: {}", e.what());
         }
 
-        return Cli(program);
+        return Cli(std::move(program));
     }
 };
 
@@ -70,13 +81,14 @@ Result<void> runSingle(std::string configFile) {
 Result<void> runDim() {
     FredTesterRpc rpc;
 
-    DimService dim("FRED_TESTER/LOG", (char*)"");
-    Logger::initDim(&dim);
+    Logger::initDim();
     DimServer::start("FRED_TESTER");
 
     Logger::info("FRED_TESTER", "Started DIM server");
     while (true) {
-        auto _ = rpc.waitAndExecute();
+        Logger::info("FRED_TESTER", "Waiting for DIM command");
+        rpc.waitAndExecute();
+        Logger::info("FRED_TESTER", "DONE");
     }
 }
 
@@ -85,6 +97,7 @@ int main(int argc, char** argv) {
 
     if (!cli) {
         Logger::error("FRED_TESTER", "{}", cli.error());
+        return 1;
     }
 
     if (cli->debug) {
@@ -92,14 +105,7 @@ int main(int argc, char** argv) {
         Logger::debug("FRED_TESTER", "Debug mode enabled");
     }
 
-    Result<void> res;
-    if (cli->mode == "dim") {
-        res = runDim();
-    } else if (cli->mode == "single") {
-        res = runSingle(cli->configFile);
-    } else {
-        res = err("Unsupported mode: {}", cli->mode);
-    }
+    Result<void> res = cli->isSingle ? runSingle(cli->configFile) : runDim();
 
     if (!res) {
         Logger::error("FRED_TESTER", "{}", res.error());

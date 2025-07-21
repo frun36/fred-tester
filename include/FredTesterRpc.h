@@ -3,7 +3,6 @@
 #include <condition_variable>
 #include <optional>
 
-#include "Result.h"
 #include "dis.hxx"
 #include "tests/TesterConfig.h"
 
@@ -16,7 +15,7 @@ class FredTesterRpc: public DimRpc {
     void rpcHandler() override;
 
   public:
-    Result<void> waitAndExecute();
+    void waitAndExecute();
 
     FredTesterRpc(const char* name = "FRED_TESTER/CONTROL") :
         DimRpc(name, "C", "C") {}

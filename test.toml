@@ -1,10 +1,10 @@
 [setup]
-connected_boards = [ "TCM0", "PMA0" ]
-reset_system = true
-manager_start = true
-reset_errors = true
+connected_boards = ["TCM0", "PMA0"]
+reset_system = false
+manager_start = false
+reset_errors = false
 status_tracking = true
-configuration = false
+configuration = "laser_1124hz_or_trg"
 counter_rates_tracking = true
 
 [tests]

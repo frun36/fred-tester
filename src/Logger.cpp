@@ -4,8 +4,8 @@ void Logger::setDebug(bool debug) {
     getInstance().m_debug = debug;
 }
 
-void Logger::initDim(DimService* dim) {
-    getInstance().dim = dim;
+void Logger::initDim() {
+    getInstance().dim.emplace("FRED_TESTER/LOG", (char*)"FRED_TESTER initialized");
 }
 
 void Logger::log(
@@ -31,7 +31,6 @@ void Logger::log(
     }
 
     if (dim) {
-        // std::cout << "Updating DIM service\n";
         dim->updateService(const_cast<char*>(logLine.c_str()));
     }
 }

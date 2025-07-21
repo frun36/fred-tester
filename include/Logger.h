@@ -27,7 +27,7 @@ class Logger {
 
     std::mutex m_mtx;
     bool m_debug = false;
-    DimService* dim = nullptr;
+    std::optional<DimService> dim = std::nullopt;
 
     static Logger& getInstance();
     std::string getTimestamp();
@@ -36,7 +36,7 @@ class Logger {
   public:
     static void setDebug(bool debug);
 
-    static void initDim(DimService* dim);
+    static void initDim();
 
     template<typename... Args>
     static void debug(
