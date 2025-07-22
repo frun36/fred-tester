@@ -18,10 +18,7 @@ using namespace std::chrono;
 
 namespace tests {
 
-FredTester::FredTester(
-    TesterConfig cfg,
-    DimService* badChannelMap
-) :
+FredTester::FredTester(TesterConfig cfg, DimService* badChannelMap) :
     m_cfg(cfg),
     m_badChannelMap(badChannelMap) {
     for (auto board : cfg.statusTracking) {
@@ -245,6 +242,7 @@ void FredTester::run() {
             std::string currMap =
                 c.second.getBadChannelMap(*m_cfg.badChannelMap);
             badChannelMap += currMap;
+            currMap.pop_back();
             Logger::info(
                 "BAD_CHANNEL_MAP",
                 "{} bad channel map\n{}",
@@ -280,6 +278,8 @@ void FredTester::run() {
 }
 
 void FredTester::publishBadChannelMap(std::string map) {
-    m_badChannelMap->updateService((char*)map.c_str());
+    if (m_badChannelMap != nullptr)
+        m_badChannelMap->updateService((char*)map.c_str());
 }
+
 } // namespace tests

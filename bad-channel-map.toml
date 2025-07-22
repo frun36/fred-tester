@@ -1,0 +1,21 @@
+[setup]
+connected_boards = ["TCM0", "PMA0"]
+reset_system = false
+manager_start = false
+reset_errors = false
+status_tracking = false
+configuration = "laser_1124hz_or_trg"
+wait_for_attenuator = true
+counter_rates_tracking = true
+bad_channel_map = { expected_rate = 0.0, lower_tolerance = 0.1, upper_tolerance = 0.1, reference_channel = "PMA0CH12" }
+
+[tests]
+parameters = false
+histograms = false
+main_sleep = 3.0
+read_interval_change = false
+reset_counters = false
+
+[cleanup]
+reset_errors = false
+configuration = "cosmic_241022"
