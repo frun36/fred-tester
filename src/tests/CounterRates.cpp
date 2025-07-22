@@ -136,11 +136,8 @@ CounterRates::CounterRates(Board board) :
         board.isTcm() ? TcmPattern : PmPattern,
         nullptr
     ),
-    m_valueTracker(
-        m_testName,
-        board.isTcm() ? 15 : 24,
-        m_expectedInterval
-    ) {
+    m_board(board),
+    m_valueTracker(m_testName, board.isTcm() ? 15 : 24, m_expectedInterval) {
     m_valueValidator =
         std::ref(m_valueTracker); // avoid initialization order problems
 }
@@ -226,6 +223,26 @@ CounterRates::ValueTracker::ValueTracker(
 void CounterRates::resetCounters() {
     Logger::info(m_testName, "Performing reset");
     m_mapi->sendCommand("RESET");
+}
+
+std::string CounterRates::getBadChannelMap(
+    TesterConfig::BadChannelMapConfig cfg
+) {
+    if (m_board.isTcm()) {
+        return std::format(
+            "ERROR: requested bad channel map for {}",
+            m_board.name()
+        );
+    }
+
+    std::string response;
+    for (uint32_t chIdx = 0; chIdx < 12; chIdx++) {
+        utils::Channel ch(m_board, chIdx);
+        bool result = cfg.validateValue(ch, m_valueTracker.rates[chIdx].mean());
+        response += std::format("{},{}\n", ch.toStr(), result);
+    }
+
+    return response;
 }
 
 } // namespace tests

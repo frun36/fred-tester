@@ -1,5 +1,7 @@
 #include "tests/TesterConfig.h"
 
+#include "Result.h"
+
 namespace tests {
 
 Result<TesterConfig> TesterConfig::fromToml(const toml::table& t) {
@@ -128,12 +130,25 @@ Result<TesterConfig> TesterConfig::fromToml(const toml::table& t) {
     if (!setupConfiguration)
         return std::unexpected(setupConfiguration.error());
 
+    auto waitForAttenuator = parseBool(setup, "wait_for_attenuator");
+    if (!waitForAttenuator)
+        return std::unexpected(waitForAttenuator.error());
+
     auto counterRatesTracking = parseBoards(
         setup.get("counter_rates_tracking"),
         "counter_rates_tracking"
     );
     if (!counterRatesTracking)
         return std::unexpected(counterRatesTracking.error());
+
+    auto badChannelMapToml = setup.get("bad_channel_map");
+    std::optional<BadChannelMapConfig> badChannelMap = std::nullopt;
+    if (badChannelMapToml && badChannelMapToml->is_table()) {
+        TRY_ASSIGN(
+            BadChannelMapConfig::fromToml(*badChannelMapToml->as_table()),
+            badChannelMap
+        );
+    }
 
     auto parameters = parseBoards(tests.get("parameters"), "parameters");
     if (!parameters)
@@ -177,7 +192,9 @@ Result<TesterConfig> TesterConfig::fromToml(const toml::table& t) {
         *setupResetErrors,
         *statusTracking,
         *setupConfiguration,
+        *waitForAttenuator,
         *counterRatesTracking,
+        badChannelMap,
         *parameters,
         *histograms,
         *mainSleep,
@@ -188,4 +205,49 @@ Result<TesterConfig> TesterConfig::fromToml(const toml::table& t) {
     };
 }
 
+Result<TesterConfig::BadChannelMapConfig> TesterConfig::BadChannelMapConfig::
+    fromToml(const toml::table& toml) {
+    auto parseDouble = [](const toml::table& tbl,
+                          std::string_view key) -> Result<double> {
+        auto val = tbl.get_as<double>(key);
+        if (!val)
+            return err("{} must be a double", std::string(key));
+        return **val;
+    };
+
+    double expectedRate;
+    TRY_ASSIGN(parseDouble(toml, "expected_rate"), expectedRate);
+    double lowerTolerance;
+    TRY_ASSIGN(parseDouble(toml, "lower_tolerance"), lowerTolerance);
+    double upperTolerance;
+    TRY_ASSIGN(parseDouble(toml, "upper_tolerance"), upperTolerance);
+    auto referenceChannelName = toml.get_as<std::string>("reference_channel");
+    if (!referenceChannelName->is_string()) {
+        return err("Reference channel name must be a string");
+    }
+    utils::Channel referenceChannel;
+    TRY_ASSIGN(
+        utils::Channel::fromStr(referenceChannelName->as_string()->get()),
+        referenceChannel
+    );
+
+    return BadChannelMapConfig {
+        expectedRate,
+        lowerTolerance,
+        upperTolerance,
+        referenceChannel
+    };
+}
+
+bool TesterConfig::BadChannelMapConfig::validateValue(
+    utils::Channel channel,
+    double rate
+) {
+    if (channel == referenceChannel) {
+        expectedRate *= 2;
+    }
+
+    return (1. - lowerTolerance) * expectedRate < rate
+        && rate < (1. + upperTolerance);
+}
 } // namespace tests

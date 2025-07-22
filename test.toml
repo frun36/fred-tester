@@ -1,11 +1,13 @@
 [setup]
 connected_boards = ["TCM0", "PMA0"]
 reset_system = false
-manager_start = false
+manager_start = true
 reset_errors = false
 status_tracking = true
 configuration = "laser_1124hz_or_trg"
+wait_for_attenuator = false
 counter_rates_tracking = true
+bad_channel_map = { expected_rate = 1000.0, lower_tolerance = 0.1, upper_tolerance = 0.1, reference_channel = "PMA0CH12" }
 
 [tests]
 parameters = true

@@ -3,8 +3,10 @@
 #include <algorithm>
 #include <thread>
 
+#include "CommandTest.h"
 #include "Logger.h"
 #include "MapiHandler.h"
+#include "dis.hxx"
 #include "tests/Configurations.h"
 #include "tests/HistogramsSingle.h"
 #include "tests/HistogramsTracking.h"
@@ -16,7 +18,12 @@ using namespace std::chrono;
 
 namespace tests {
 
-FredTester::FredTester(TesterConfig cfg) : cfg(cfg) {
+FredTester::FredTester(
+    TesterConfig cfg,
+    DimService* badChannelMap
+) :
+    m_cfg(cfg),
+    m_badChannelMap(badChannelMap) {
     for (auto board : cfg.statusTracking) {
         status.emplace_back(board, Status(board, cfg.connectedBoards));
     }
@@ -29,7 +36,7 @@ FredTester::FredTester(TesterConfig cfg) : cfg(cfg) {
 bool FredTester::setup() {
     bool res;
 
-    if (cfg.resetSystem) {
+    if (m_cfg.resetSystem) {
         res = ResetSystem().runAndLog();
         if (!res) {
             return false;
@@ -37,13 +44,13 @@ bool FredTester::setup() {
         std::this_thread::sleep_for(1s);
     }
 
-    if (cfg.managerStart) {
+    if (m_cfg.managerStart) {
         Logger::info("MANAGER", "Sending START command");
         MapiHandler::sendCommand(utils::topic(utils::TCM0, "MANAGER"), "START");
         std::this_thread::sleep_for(1s);
     }
 
-    if (cfg.setupResetErrors) {
+    if (m_cfg.setupResetErrors) {
         res = ResetErrors().runAndLog();
         if (!res) {
             return false;
@@ -55,12 +62,42 @@ bool FredTester::setup() {
         s.second.start();
     }
 
-    if (cfg.setupConfiguration) {
-        res = Configurations(*cfg.setupConfiguration).runAndLog();
+    if (m_cfg.setupConfiguration) {
+        res = Configurations(*m_cfg.setupConfiguration).runAndLog();
         if (!res) {
             return false;
         }
         std::this_thread::sleep_for(2.5s);
+    }
+
+    if (m_cfg.waitForAttenuator) {
+        Logger::info(
+            "FRED_TESTER",
+            "Waiting for the attenuator to stop being busy"
+        );
+        bool attenuatorBusy = true;
+        auto attenuatorTest =
+            TestBuilder("WAIT FOR ATTENUATOR")
+                .mapiName(utils::topic(utils::TCM0, "PARAMETERS"))
+                .command("ATTENUATOR_BUSY,READ")
+                .pattern(R"(ATTENUATOR_BUSY,({})\n)", utils::FLT)
+                .withValueValidator(
+                    [&attenuatorBusy](auto match) -> Result<void> {
+                        double res;
+                        TRY_ASSIGN(utils::parseDouble(match[1]), res);
+                        attenuatorBusy = (res != 0.);
+                        return {};
+                    }
+                )
+                .timeout(0.2)
+                .expectOk()
+                .build();
+
+        while (attenuatorBusy) {
+            if (!attenuatorTest.run())
+                return false;
+            std::this_thread::sleep_for(500ms);
+        }
     }
 
     for (auto& c : counterRates) {
@@ -154,12 +191,12 @@ void FredTester::pmHistograms(utils::Board board) {
 }
 
 void FredTester::cleanup() {
-    if (cfg.cleanupConfiguration) {
-        Configurations(*cfg.cleanupConfiguration).runAndLog();
+    if (m_cfg.cleanupConfiguration) {
+        Configurations(*m_cfg.cleanupConfiguration).runAndLog();
         std::this_thread::sleep_for(2.5s);
     }
 
-    if (cfg.cleanupResetErrors) {
+    if (m_cfg.cleanupResetErrors) {
         ResetErrors().runAndLog();
         std::this_thread::sleep_for(1s);
     }
@@ -183,32 +220,49 @@ void FredTester::run() {
 
     std::this_thread::sleep_for(1s);
 
-    for (auto board : cfg.parameters) {
+    for (auto board : m_cfg.parameters) {
         Parameters(board).run();
         std::this_thread::sleep_for(2s);
     }
 
-    for (auto board : cfg.histograms) {
+    for (auto board : m_cfg.histograms) {
         if (board.isTcm())
             tcmHistograms();
         else
             pmHistograms(board);
     }
 
-    std::this_thread::sleep_for(std::chrono::duration<double>(cfg.mainSleep));
+    std::this_thread::sleep_for(std::chrono::duration<double>(m_cfg.mainSleep));
     for (auto& c : counterRates) {
         c.second.stop();
     }
     std::this_thread::sleep_for(10ms);
+    if (m_cfg.badChannelMap) {
+        std::string badChannelMap;
+        for (auto& c : counterRates) {
+            if (c.first.isTcm())
+                continue;
+            std::string currMap =
+                c.second.getBadChannelMap(*m_cfg.badChannelMap);
+            badChannelMap += currMap;
+            Logger::info(
+                "BAD_CHANNEL_MAP",
+                "{} bad channel map\n{}",
+                c.first.name(),
+                currMap
+            );
+        }
+        publishBadChannelMap(badChannelMap);
+    }
 
-    if (cfg.readIntervalChange) {
+    if (m_cfg.readIntervalChange) {
         changeReadInterval();
         resetReadInterval();
     }
 
     std::this_thread::sleep_for(2s);
 
-    for (auto board : cfg.resetCounters) {
+    for (auto board : m_cfg.resetCounters) {
         auto it = std::find_if(
             counterRates.begin(),
             counterRates.end(),
@@ -225,4 +279,7 @@ void FredTester::run() {
     finish();
 }
 
+void FredTester::publishBadChannelMap(std::string map) {
+    m_badChannelMap->updateService((char*)map.c_str());
+}
 } // namespace tests

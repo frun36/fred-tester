@@ -13,13 +13,29 @@ namespace tests {
 struct TesterConfig {
     using Boards = std::vector<utils::Board>;
 
+    struct BadChannelMapConfig {
+        double expectedRate;
+        double lowerTolerance;
+        double upperTolerance;
+        utils::Channel referenceChannel;
+
+        static Result<BadChannelMapConfig> fromToml(const toml::table& toml);
+
+        bool validateValue(
+            utils::Channel channel,
+            double rate
+        );
+    };
+
     const Boards connectedBoards;
     const bool resetSystem;
     const bool managerStart;
     const bool setupResetErrors;
     const Boards statusTracking;
     const std::optional<std::string> setupConfiguration;
+    const bool waitForAttenuator;
     const Boards counterRatesTracking;
+    const std::optional<BadChannelMapConfig> badChannelMap;
     const Boards parameters;
     const Boards histograms;
     const double mainSleep;

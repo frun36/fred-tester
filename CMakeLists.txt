@@ -28,6 +28,7 @@ add_executable(fred-tester
     src/TrackingTest.cpp
     src/FredTesterRpc.cpp
     src/Logger.cpp
+    src/utils.cpp
     src/tests/Configurations.cpp
     src/tests/CounterRates.cpp
     src/tests/FredTester.cpp

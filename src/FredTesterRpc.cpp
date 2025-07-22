@@ -47,7 +47,7 @@ void FredTesterRpc::waitAndExecute() {
 
     std::unique_lock<std::mutex> lock(m_mtx);
     m_cv.wait(lock, [this]() { return m_cfg.has_value(); });
-    tests::FredTester tester(*m_cfg);
+    tests::FredTester tester(*m_cfg, &m_badChannelMap);
     tester.run();
     m_cfg = std::nullopt;
 }

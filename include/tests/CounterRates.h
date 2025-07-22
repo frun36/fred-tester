@@ -4,6 +4,7 @@
 #include <cstddef>
 
 #include "Result.h"
+#include "TesterConfig.h"
 #include "TrackingTest.h"
 #include "utils.h"
 
@@ -91,6 +92,7 @@ class CounterRates: public TrackingTest {
         );
     };
 
+    utils::Board m_board;
     ValueTracker m_valueTracker;
 
     static const std::string TcmPattern;
@@ -103,6 +105,7 @@ class CounterRates: public TrackingTest {
 
     CounterRates(CounterRates&& other) :
         TrackingTest(std::move(other)),
+        m_board(std::move(other.m_board)),
         m_valueTracker(std::move(other.m_valueTracker)) {
         m_valueValidator = std::ref(m_valueTracker);
     }
@@ -110,6 +113,7 @@ class CounterRates: public TrackingTest {
     CounterRates& operator=(CounterRates&& other) {
         if (this != &other) {
             TrackingTest::operator=(std::move(other));
+            m_board = std::move(other.m_board);
             m_valueTracker = std::move(other.m_valueTracker);
             m_valueValidator = std::ref(m_valueTracker);
         }
@@ -124,6 +128,8 @@ class CounterRates: public TrackingTest {
     void setInterval(double newInterval) {
         m_valueTracker.currentInterval = newInterval;
     }
+
+    std::string getBadChannelMap(TesterConfig::BadChannelMapConfig cfg);
 };
 
 } // namespace tests

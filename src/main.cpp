@@ -1,5 +1,6 @@
 #include <argparse/argparse.hpp>
 #include <cstring>
+#include <memory>
 #include <string>
 #include <toml++/toml.hpp>
 
@@ -32,13 +33,11 @@ struct Cli {
             .implicit_value(true);
 
         argparse::ArgumentParser singleCmd("single");
+        singleCmd.add_description("Run tests from specified .toml file once");
         argparse::ArgumentParser dimCmd("dim");
-
-        // program.add_argument("mode")
-        //     .help(
-        //         "Operation mode: 'single' (single pass of the tester) or 'dim' (run a DIM server accepting commands)"
-        //     )
-        //     .choices("single", "dim");
+        dimCmd.add_description(
+            "Run DIM server, waiting for requests (in .toml format)"
+        );
 
         singleCmd.add_argument("config-file")
             .help("Path to the config file (in 'single' mode)")
@@ -82,6 +81,8 @@ Result<void> runDim() {
     FredTesterRpc rpc;
 
     Logger::initDim();
+    std::shared_ptr<DimService> badChannelMap =
+        std::make_shared<DimService>();
     DimServer::start("FRED_TESTER");
 
     Logger::info("FRED_TESTER", "Started DIM server");
