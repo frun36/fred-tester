@@ -41,7 +41,7 @@ struct Cli {
 
         singleCmd.add_argument("config-file")
             .help("Path to the config file (in 'single' mode)")
-            .default_value("../default.toml");
+            .default_value("../full.toml");
 
         program.add_subparser(singleCmd);
         program.add_subparser(dimCmd);
@@ -81,8 +81,7 @@ Result<void> runDim() {
     FredTesterRpc rpc;
 
     Logger::initDim();
-    std::shared_ptr<DimService> badChannelMap =
-        std::make_shared<DimService>();
+    std::shared_ptr<DimService> badChannelMap = std::make_shared<DimService>();
     DimServer::start("FRED_TESTER");
 
     Logger::info("FRED_TESTER", "Started DIM server");
