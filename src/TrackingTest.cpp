@@ -72,6 +72,7 @@ void TrackingTest::loop() {
     m_stats.reset();
     std::regex re(m_pattern);
     while (!m_stopFlag.load()) {
+        m_mapi->resetResponse();
         auto response = m_mapi->handleResponse(m_expectedInterval * 2);
         if (!response) {
             if (response.error() == "RESPONSE_TIMEOUT") {

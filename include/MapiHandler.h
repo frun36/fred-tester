@@ -1,11 +1,11 @@
 #pragma once
 
 #include <condition_variable>
-#include <expected>
 #include <memory>
 #include <mutex>
 #include <string>
 
+#include "Result.h"
 #include "dic.hxx"
 
 class MapiHandler {
@@ -14,10 +14,12 @@ class MapiHandler {
         std::mutex mtx;
         std::condition_variable cv;
         std::string contents;
+        bool awaitingResponse = false;
         bool isReady = false;
         bool isError = false;
 
         void reset() {
+            awaitingResponse = false;
             isReady = false;
             contents.clear();
             isError = false;
@@ -47,20 +49,25 @@ class MapiHandler {
         DimClient::sendCommand(m_req.c_str(), command.c_str());
     }
 
-    static inline void sendCommand(const std::string& mapiName, const std::string& command) {
+    static inline void sendCommand(
+        const std::string& mapiName,
+        const std::string& command
+    ) {
         get(mapiName)->sendCommand(command);
     }
 
-    std::expected<std::string, std::string> handleResponse(
+    Result<std::string> handleResponse(
         double timeout,
         bool expectError = false
     );
 
-    std::expected<std::string, std::string> handleCommandWithResponse(
+    Result<std::string> handleCommandWithResponse(
         std::string command,
         double timeout,
         bool expectError = false
     );
 
     static std::shared_ptr<MapiHandler> get(const std::string& mapiName);
+
+    void resetResponse();
 };

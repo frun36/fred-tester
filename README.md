@@ -18,8 +18,8 @@ Note that at `gcc-13` is the minimum compiler version. DIM is also required, in 
 
 ## Running
 ```
-./fred-tester dim [-d/--debug]
-./fred-tester single [config-file] [-d/--debug]
+./fred-tester [-d/--debug] dim
+./fred-tester [-d/--debug] single [config-file]
 ```
 The debug option enables verbose logs.
 

@@ -3,6 +3,7 @@
 #include <unordered_map>
 
 #include "Logger.h"
+#include "Result.h"
 
 // memory leak after strdup, not a big deal here
 MapiHandler::MapiInfo::MapiInfo(
@@ -17,6 +18,21 @@ MapiHandler::MapiInfo::MapiInfo(
 
 void MapiHandler::MapiInfo::infoHandler() {
     std::lock_guard<std::mutex> lock(res.mtx);
+    if (!res.awaitingResponse) {
+        return;
+    }
+
+    if (res.isReady) {
+        Logger::error(
+            name,
+            "Internal error - awaited response has already been received. Discarding response:\n{}: {}\nCurrent response:\n{}: {}",
+            isError ? "_ERR" : "_ANS",
+            getString(),
+            res.isError ? "_ERR" : "_ANS",
+            res.contents
+        );
+        return;
+    }
     res.contents = getString();
     Logger::debug(name, "Received: {}", res.contents);
     res.isReady = true;
@@ -30,7 +46,7 @@ MapiHandler::MapiHandler(const std::string& name) :
     m_ans(name + "_ANS", m_res, false),
     m_err(name + "_ERR", m_res, true) {}
 
-std::expected<std::string, std::string> MapiHandler::handleResponse(
+Result<std::string> MapiHandler::handleResponse(
     double timeout,
     bool expectError
 ) {
@@ -44,21 +60,20 @@ std::expected<std::string, std::string> MapiHandler::handleResponse(
     bool isError = m_res.isError;
 
     m_res.reset();
+    m_res.awaitingResponse = false;
 
     if ((isError && expectError) || (!isError && !expectError))
         return contents;
     return std::unexpected(contents);
 }
 
-std::expected<std::string, std::string> MapiHandler::handleCommandWithResponse(
+Result<std::string> MapiHandler::handleCommandWithResponse(
     std::string command,
     double timeout,
     bool expectError
 ) {
-    {
-        std::unique_lock<std::mutex> lock(m_res.mtx);
-        m_res.reset();
-    }
+    resetResponse();
+
     sendCommand(command);
 
     Logger::debug(m_name, "Sent command: {}", command);
@@ -76,4 +91,10 @@ std::shared_ptr<MapiHandler> MapiHandler::get(const std::string& mapiName) {
         );
     }
     return Handlers.at(mapiName);
+}
+
+void MapiHandler::resetResponse() {
+    std::unique_lock<std::mutex> lock(m_res.mtx);
+    m_res.reset();
+    m_res.awaitingResponse = true;
 }
