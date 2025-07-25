@@ -33,17 +33,27 @@ FredTester::FredTester(TesterConfig cfg, DimService* badChannelMap) :
 bool FredTester::setup() {
     bool res;
 
+    if (m_cfg.managerStart) {
+        Logger::info("MANAGER", "Sending START command");
+        MapiHandler::sendCommand(utils::topic(utils::TCM0, "MANAGER"), "START");
+        std::this_thread::sleep_for(1s);
+
+        for (auto& s : status) {
+            s.second.start();
+        }
+
+        std::this_thread::sleep_for(2s);
+
+        for (auto& s : status) {
+            s.second.stop();
+        }
+    }
+
     if (m_cfg.resetSystem) {
         res = ResetSystem().runAndLog();
         if (!res) {
             return false;
         }
-        std::this_thread::sleep_for(1s);
-    }
-
-    if (m_cfg.managerStart) {
-        Logger::info("MANAGER", "Sending START command");
-        MapiHandler::sendCommand(utils::topic(utils::TCM0, "MANAGER"), "START");
         std::this_thread::sleep_for(1s);
     }
 
@@ -53,10 +63,6 @@ bool FredTester::setup() {
             return false;
         }
         std::this_thread::sleep_for(1s);
-    }
-
-    for (auto& s : status) {
-        s.second.start();
     }
 
     if (m_cfg.setupConfiguration) {

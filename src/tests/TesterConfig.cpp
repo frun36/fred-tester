@@ -248,6 +248,6 @@ bool TesterConfig::BadChannelMapConfig::validateValue(
     }
 
     return (1. - lowerTolerance) * expectedRate <= rate
-        && rate <= (1. + upperTolerance);
+        && rate <= (1. + upperTolerance) * expectedRate;
 }
 } // namespace tests

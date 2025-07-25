@@ -238,7 +238,7 @@ std::string CounterRates::getBadChannelMap(
     std::string response;
     for (uint32_t chIdx = 0; chIdx < 12; chIdx++) {
         utils::Channel ch(m_board, chIdx);
-        bool result = cfg.validateValue(ch, m_valueTracker.rates[chIdx].mean());
+        bool result = cfg.validateValue(ch, m_valueTracker.rates[2. * chIdx + 1].mean()); // TRG rate
         response += std::format("{},{}\n", ch.toStr(), result);
     }
 

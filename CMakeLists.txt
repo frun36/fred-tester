@@ -59,6 +59,8 @@ target_precompile_headers(fred-tester PRIVATE
 target_compile_definitions(fred-tester PUBLIC TOML_EXCEPTIONS=0)
 
 target_link_libraries(fred-tester ${DIM_LIBRARY} pthread)
+
+# Address sanitizer
 # add_compile_options(-fsanitize=address)
 # target_link_options(fred-tester PRIVATE -fsanitize=address)
 

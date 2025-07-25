@@ -1,7 +1,6 @@
 #include "FredTesterRpc.h"
 
 #include <optional>
-#include <thread>
 
 #include "Logger.h"
 #include "tests/FredTester.h"

@@ -22,18 +22,20 @@ void MapiHandler::MapiInfo::infoHandler() {
         return;
     }
 
+    std::string contents(getString(), getSize() - 1);
+    
     if (res.isReady) {
         Logger::error(
             name,
             "Internal error - awaited response has already been received. Discarding response:\n{}: {}\nCurrent response:\n{}: {}",
             isError ? "_ERR" : "_ANS",
-            getString(),
+            contents,
             res.isError ? "_ERR" : "_ANS",
             res.contents
         );
         return;
     }
-    res.contents = getString();
+    res.contents = std::move(contents);
     Logger::debug(name, "Received: {}", res.contents);
     res.isReady = true;
     res.isError = isError;
