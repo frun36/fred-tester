@@ -36,9 +36,9 @@ Requests are to be sent to `FRED_TESTER/CONTROL/RpcIn`, and a short response wil
 `FRED_TESTER/LOG` sends the test logs line by line, and `FRED_TESTER/BAD_CHANNEL_MAP` publishes the bad channel map.
 
 ## Test procedure (full)
-1. RESET_SYSTEM
-2. Sleep - 1 second
-3. START sent to MANAGER
+1. START sent to MANAGER
+2. Sleep - 1 second; STATUS tracking for 2s (to check PM_MASK_SPI - expect errors related to readiness changed)
+3. RESET_SYSTEM
 4. Sleep - 1 second
 5. RESET_ERRORS
 6. Sleep - 1 second
