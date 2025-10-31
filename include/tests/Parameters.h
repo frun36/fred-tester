@@ -1,4 +1,3 @@
-#include "CommandTest.h"
 #include "TestSuite.h"
 #include "utils.h"
 
@@ -6,19 +5,24 @@ namespace tests {
 
 class Parameters: public TestSuite {
   private:
-    CommandTest writeLSB15(utils::Board board);
-    CommandTest writeElectronicMSB255(utils::Board board);
-    CommandTest doubleRead(
+    struct ParameterOperation {
+        std::string name;
+        std::string type;
+        double value;
+        bool validation = false;
+    };
+
+    CommandTest generateTestOk(
         utils::Board board,
-        std::pair<double, double> expected
+        std::string testName,
+        std::vector<ParameterOperation> operations
     );
-    CommandTest writeOutOfRangeLSB(utils::Board board);
-    CommandTest readNonexistent(utils::Board board);
-    CommandTest doubleWrite(
+    CommandTest generateTestErr(
         utils::Board board,
-        std::pair<double, double> values
+        std::string testName,
+        std::vector<ParameterOperation> operations,
+        std::string errorMsg
     );
-    CommandTest doubleWriteOutOfRangeMSB(utils::Board board);
 
   public:
     Parameters(utils::Board board);
