@@ -28,7 +28,8 @@ CommandTest Parameters::generateTestOk(
         pattern += std::format("([A-Z0-9_]+),({})\\n", utils::FLT);
     }
 
-    auto valueValidator = [operations](std::smatch match) mutable -> Result<void> {
+    auto valueValidator =
+        [operations](std::smatch match) mutable -> Result<void> {
         for (size_t i = 1; i < match.size() - 1; i += 2) {
             auto it = std::find_if(
                 operations.begin(),
@@ -111,8 +112,14 @@ Parameters::Parameters(utils::Board board) :
         ),
         generateTestErr(
             board,
-            "WriteOutOfRange",
+            "WriteOutOfRangeUnsigned",
             {{"TEST_A", "WRITE", -0x0D}},
+            "outside the valid range"
+        ),
+        generateTestErr(
+            board,
+            "WriteOutOfRangeSigned",
+            {{"TEST_B", "WRITE", 0xFF}},
             "outside the valid range"
         ),
         generateTestOk(
@@ -136,11 +143,6 @@ Parameters::Parameters(utils::Board board) :
              {"TEST_B", "READ", -1},
              {"TEST_D", "READ", 0xC0FFEE},
              {"TEST_A", "READ", 0x0D}}
-        ),
-        generateTestOk(
-            board,
-            "SuccessfulMultiRead_AB",
-            {{"TEST_A", "READ", 0x0D}, {"TEST_B", "READ", -1}}
         ),
         generateTestOk(
             board,
@@ -205,28 +207,33 @@ Parameters::Parameters(utils::Board board) :
         generateTestOk(
             board,
             "SuccessfulMultiWrite_BD",
-            {{"TEST_B", "WRITE", 0xF0}, {"TEST_D", "WRITE", 0xCAFE}}
+            {{"TEST_B", "WRITE", 0x40}, {"TEST_D", "WRITE", 0xCAFE}}
         ),
         generateTestOk(
             board,
             "SuccessfulMultiWrite_ABC",
             {{"TEST_A", "WRITE", 0xEF},
-             {"TEST_B", "WRITE", 0xBE},
+             {"TEST_B", "WRITE", 0x6E},
              {"TEST_C", "WRITE", 0xACE}}
         ),
         generateTestOk(
             board,
             "SuccessfulMultiWrite_BCD",
-            {{"TEST_B", "WRITE", 0xF0},
-             {"TEST_C", "WRITE", -1},
+            {{"TEST_B", "WRITE", 0x60},
+             {"TEST_C", "WRITE", 0x0D},
              {"TEST_D", "WRITE", 0xC0FFEE}}
         ),
         generateTestOk(
             board,
-            "SuccessfulMultiWrite_ACD",
+            "SuccessfulMultiWriteWithElectronic_ACD",
             {{"TEST_A", "WRITE", 0xAB},
-             {"TEST_C", "WRITE", 0xCD},
+             {"TEST_C", "WRITE_ELECTRONIC", 0x66},
              {"TEST_D", "WRITE", 0xBEEFF00D}}
+        ),
+        generateTestOk(
+            board,
+            "SuccessfulMultiReadAfterWriteElectronic_AC",
+            {{"TEST_A", "READ", 0xAB}, {"TEST_C", "READ", 0xCD}}
         ),
         generateTestErr(
             board,
