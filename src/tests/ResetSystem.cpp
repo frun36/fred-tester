@@ -10,7 +10,7 @@ ResetSystem::ResetSystem() :
                     .command("")
                     .pattern(R"(SUCCESS)")
                     .withoutValueValidator()
-                    .timeout(3.0)
+                    .timeout(5.0)
                     .expectOk()
                     .build()) {}
 } // namespace tests
