@@ -32,6 +32,7 @@ struct TesterConfig {
     const bool managerStart;
     const bool setupResetErrors;
     const Boards statusTracking;
+    const std::optional<std::string> scStatusTracking;
     const std::optional<std::string> setupConfiguration;
     const bool waitForAttenuator;
     const Boards counterRatesTracking;

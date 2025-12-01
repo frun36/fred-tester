@@ -125,6 +125,11 @@ Result<TesterConfig> TesterConfig::fromToml(const toml::table& t) {
     if (!statusTracking)
         return std::unexpected(statusTracking.error());
 
+    auto scStatusTracking =
+        parseOptionalString(setup.get("sc_status_tracking"), "sc_status_tracking");
+    if (!scStatusTracking)
+        return std::unexpected(scStatusTracking.error());
+
     auto setupConfiguration =
         parseOptionalString(setup.get("configuration"), "configuration");
     if (!setupConfiguration)
@@ -191,6 +196,7 @@ Result<TesterConfig> TesterConfig::fromToml(const toml::table& t) {
         *managerStart,
         *setupResetErrors,
         *statusTracking,
+        *scStatusTracking,
         *setupConfiguration,
         *waitForAttenuator,
         *counterRatesTracking,
