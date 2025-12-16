@@ -63,6 +63,10 @@ Result<Board> Board::fromName(std::string str) {
         return Board {BoardName::PMC8};
     if (str == "PMC9")
         return Board {BoardName::PMC9};
+    if (str == "VIRTUAL_SC0")
+        return Board {BoardName::VIRTUAL_SC0};
+    if (str == "VIRTUAL_SC1")
+        return Board {BoardName::VIRTUAL_SC1};
     return err("Invalid board name: {}", str);
 }
 
@@ -110,6 +114,10 @@ std::string Board::name() const {
             return "PMC8";
         case BoardName::PMC9:
             return "PMC9";
+        case BoardName::VIRTUAL_SC0:
+            return "VIRTUAL_SC0";
+        case BoardName::VIRTUAL_SC1:
+            return "VIRTUAL_SC1";
         default:
             return "????";
     }

@@ -11,11 +11,16 @@ class ScStatus: public TrackingTest {
     ParameterValidator m_validator;
 
   public:
-    ScStatus(std::string link) :
+    ScStatus(std::string link, uint32_t boardId) :
         TrackingTest(
             "SC_STATUS TRACKER",
             MapiHandler::get(
-                utils::topic({utils::Board::BoardName::TCM1}, "SC_STATUS")
+                utils::topic(
+                    *utils::Board::fromName(
+                        std::format("VIRTUAL_SC{}", boardId)
+                    ),
+                    "SC_STATUS"
+                )
             ),
             1.0,
             0,
@@ -24,14 +29,16 @@ class ScStatus: public TrackingTest {
                 return m_validator.validate(smatch[0].str());
             }
         ) {
-        m_validator.eq("TRANSLATOR_ERR", 0);
-        if (link == "GBT") {
-            m_validator.eq("LINK_USED", 0).eq("GBT_ERR", 0);
-        } else if (link == "IPBUS") {
-            m_validator.eq("LINK_USED", 0).eq("IPBUS_ERR", 0);
-        } else {
+        m_validator.eq("TRANSLATOR_ERR", 0).eq("GBT_ERR", 0).eq("IPBUS_ERR", 0);
+        if (link == "GBT")
+            m_validator.eq("LINK_USED", 1);
+        else if (link == "IPBUS")
+            m_validator.eq("LINK_USED", 0);
+        else
             throw std::runtime_error("Unexpected SC link name: " + link);
-        }
+
+        if (boardId > 1)
+            throw std::runtime_error("Unexpected boardId for VIRTUAL_SC");
     }
 
     ScStatus(ScStatus&& other) = default;

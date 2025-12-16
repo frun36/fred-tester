@@ -20,7 +20,6 @@ std::string repeat(std::string str, std::string sep, size_t n);
 struct Board {
     enum class BoardName {
         TCM0,
-        TCM1,
         PMA0,
         PMA1,
         PMA2,
@@ -40,7 +39,9 @@ struct Board {
         PMC6,
         PMC7,
         PMC8,
-        PMC9
+        PMC9,
+        VIRTUAL_SC0,
+        VIRTUAL_SC1
     } identity;
 
   public:

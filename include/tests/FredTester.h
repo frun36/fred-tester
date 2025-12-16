@@ -5,6 +5,7 @@
 #include "dis.hxx"
 #include "tests/CounterRates.h"
 #include "tests/Parameters.h"
+#include "tests/ScStatus.h"
 #include "tests/Status.h"
 #include "tests/TesterConfig.h"
 #include "utils.h"
@@ -16,6 +17,7 @@ class FredTester {
     TesterConfig m_cfg;
     std::vector<std::pair<utils::Board, Status>> status;
     std::vector<std::pair<utils::Board, CounterRates>> counterRates;
+    std::vector<std::pair<utils::Board, ScStatus>> scStatus;
 
     DimService* m_badChannelMap = nullptr;
     void publishBadChannelMap(std::string map);

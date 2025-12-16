@@ -25,6 +25,17 @@ FredTester::FredTester(TesterConfig cfg, DimService* badChannelMap) :
         status.emplace_back(board, Status(board, cfg.connectedBoards));
     }
 
+    if (cfg.scStatusTracking) {
+        scStatus.emplace_back(
+            *utils::Board::fromName("VIRTUAL_SC0"),
+            ScStatus(*m_cfg.scStatusTracking, 0)
+        );
+        scStatus.emplace_back(
+            *utils::Board::fromName("VIRTUAL_SC1"),
+            ScStatus(*m_cfg.scStatusTracking, 1)
+        );
+    }
+
     for (auto board : cfg.counterRatesTracking) {
         counterRates.emplace_back(board, CounterRates(board));
     }
@@ -47,6 +58,10 @@ bool FredTester::setup() {
         for (auto& s : status) {
             s.second.stop();
         }
+    }
+
+    for (auto& s : scStatus) {
+        s.second.start();
     }
 
     if (m_cfg.resetSystem) {
@@ -207,6 +222,10 @@ void FredTester::cleanup() {
 
 void FredTester::finish() {
     for (auto& s : status) {
+        s.second.stop();
+    }
+
+    for (auto& s : scStatus) {
         s.second.stop();
     }
 
