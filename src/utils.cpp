@@ -131,12 +131,17 @@ bool Board::isTcm() const {
     return identity == BoardName::TCM0;
 }
 
+bool Board::isVirtualSc() const {
+    return identity == BoardName::VIRTUAL_SC0
+        || identity == BoardName::VIRTUAL_SC1;
+}
+
 bool Board::isPm() const {
-    return !isTcm();
+    return !isTcm() && !isVirtualSc();
 }
 
 std::string_view Board::type() const {
-    return isTcm() ? "TCM" : "PM";
+    return isTcm() ? "TCM" : isVirtualSc() ? "VIRTUAL_SC" : "PM";
 }
 
 Result<double> parseDouble(const std::string& s) {

@@ -51,6 +51,7 @@ struct Board {
     bool operator==(const Board& other) const;
 
     bool isTcm() const;
+    bool isVirtualSc() const;
     bool isPm() const;
 
     std::string_view type() const;

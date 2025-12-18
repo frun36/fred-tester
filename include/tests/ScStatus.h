@@ -41,8 +41,24 @@ class ScStatus: public TrackingTest {
             throw std::runtime_error("Unexpected boardId for VIRTUAL_SC");
     }
 
-    ScStatus(ScStatus&& other) = default;
-    ScStatus& operator=(ScStatus&& other) = default;
+    ScStatus(ScStatus&& other) :
+        TrackingTest(std::move(other)),
+        m_validator(std::move(other.m_validator)) {
+        m_valueValidator = [this](auto smatch) {
+            return m_validator.validate(smatch[0].str());
+        };
+    }
+
+    ScStatus& operator=(ScStatus&& other) {
+        if (this != &other) {
+            TrackingTest::operator=(std::move(other));
+            m_validator = std::move(other.m_validator);
+            m_valueValidator = [this](auto smatch) {
+                return m_validator.validate(smatch[0].str());
+            };
+        }
+        return *this;
+    }
 
     ScStatus(const ScStatus&) = delete;
     ScStatus& operator=(const ScStatus&) = delete;

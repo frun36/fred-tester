@@ -60,10 +60,6 @@ bool FredTester::setup() {
         }
     }
 
-    for (auto& s : scStatus) {
-        s.second.start();
-    }
-
     if (m_cfg.resetSystem) {
         res = ResetSystem().runAndLog();
         if (!res) {
@@ -116,6 +112,14 @@ bool FredTester::setup() {
                 return false;
             std::this_thread::sleep_for(500ms);
         }
+    }
+
+    for (auto& s : status) {
+        s.second.start();
+    }
+
+    for (auto& s : scStatus) {
+        s.second.start();
     }
 
     for (auto& c : counterRates) {
