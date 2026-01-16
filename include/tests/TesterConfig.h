@@ -21,10 +21,7 @@ struct TesterConfig {
 
         static Result<BadChannelMapConfig> fromToml(const toml::table& toml);
 
-        bool validateValue(
-            utils::Channel channel,
-            double rate
-        );
+        bool validateValue(utils::Channel channel, double rate);
     };
 
     const Boards connectedBoards;

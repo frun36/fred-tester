@@ -38,6 +38,8 @@ add_executable(fred-tester
     src/tests/ResetErrors.cpp
     src/tests/ResetSystem.cpp
     src/tests/Status.cpp
+
+    src/tests/ConfigBuilder.cpp
     src/tests/TesterConfig.cpp
 )
 
@@ -61,6 +63,7 @@ target_compile_definitions(fred-tester PUBLIC TOML_EXCEPTIONS=0)
 target_link_libraries(fred-tester ${DIM_LIBRARY} pthread)
 
 # Address sanitizer
-# add_compile_options(-fsanitize=address)
-# target_link_options(fred-tester PRIVATE -fsanitize=address)
+add_compile_options(-fsanitize=address -fsanitize=undefined -fno-omit-frame-pointer)
+target_compile_definitions(fred-tester PRIVATE _GLIBCXX_ASSERTIONS)
+target_link_options(fred-tester PRIVATE -fsanitize=address -fsanitize=undefined)
 
