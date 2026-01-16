@@ -19,6 +19,7 @@ Result<TesterConfig> TesterConfig::fromToml(const toml::table& t) {
         .setup<std::optional<BadChannelMapConfig>>("bad_channel_map")
         .test<Boards>("parameters") 
         .test<bool>("test_parameters")
+        .test<bool>("reset")
         .test<Boards>("histograms")
         .test<double>("main_sleep")
         .test<bool>("read_interval_change")

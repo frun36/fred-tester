@@ -10,6 +10,7 @@
 #include "tests/Configurations.h"
 #include "tests/HistogramsSingle.h"
 #include "tests/HistogramsTracking.h"
+#include "tests/Reset.h"
 #include "tests/ResetErrors.h"
 #include "tests/ResetSystem.h"
 #include "tests/TestParameters.h"
@@ -249,12 +250,17 @@ void FredTester::run() {
 
     for (auto board : m_cfg.parameters) {
         Parameters(board).run();
-        std::this_thread::sleep_for(2s);
+        std::this_thread::sleep_for(1s);
     }
 
     if (m_cfg.testParameters) {
         TestParameters().run();
-        std::this_thread::sleep_for(2s);
+        std::this_thread::sleep_for(1s);
+    }
+
+    if (m_cfg.reset) {
+        Reset().run();
+        std::this_thread::sleep_for(1s);
     }
 
     for (auto board : m_cfg.histograms) {

@@ -36,6 +36,7 @@ struct TesterConfig {
     const std::optional<BadChannelMapConfig> badChannelMap;
     const Boards parameters;
     const bool testParameters;
+    const bool reset;
     const Boards histograms;
     const double mainSleep;
     const bool readIntervalChange;

@@ -35,6 +35,7 @@ add_executable(fred-tester
     src/tests/HistogramsSingle.cpp
     src/tests/HistogramsTracking.cpp
     src/tests/Parameters.cpp
+    src/tests/Reset.cpp
     src/tests/ResetErrors.cpp
     src/tests/ResetSystem.cpp
     src/tests/Status.cpp

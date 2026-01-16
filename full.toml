@@ -13,6 +13,7 @@ bad_channel_map = { expected_rate = 1000.0, lower_tolerance = 0.1, upper_toleran
 [tests]
 parameters = ["TCM0", "PMA0"]     # equivalent to true here
 test_parameters = true
+reset = true
 histograms = ["TCM0", "PMA0"]
 main_sleep = 10.0
 read_interval_change = true
