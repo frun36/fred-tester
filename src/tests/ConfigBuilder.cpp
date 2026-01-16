@@ -31,6 +31,7 @@ Result<TesterConfig> ConfigBuilder::parseToml(const toml::table& t) {
             "bad_channel_map"
         ),
         *testTryGet<TesterConfig::Boards>("parameters"),
+        *testTryGet<bool>("test_parameters"),
         *testTryGet<TesterConfig::Boards>("histograms"),
         *testTryGet<double>("main_sleep"),
         *testTryGet<bool>("read_interval_change"),

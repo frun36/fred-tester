@@ -12,6 +12,7 @@
 #include "tests/HistogramsTracking.h"
 #include "tests/ResetErrors.h"
 #include "tests/ResetSystem.h"
+#include "tests/TestParameters.h"
 #include "utils.h"
 
 using namespace std::chrono;
@@ -248,6 +249,11 @@ void FredTester::run() {
 
     for (auto board : m_cfg.parameters) {
         Parameters(board).run();
+        std::this_thread::sleep_for(2s);
+    }
+
+    if (m_cfg.testParameters) {
+        TestParameters().run();
         std::this_thread::sleep_for(2s);
     }
 

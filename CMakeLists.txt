@@ -38,7 +38,7 @@ add_executable(fred-tester
     src/tests/ResetErrors.cpp
     src/tests/ResetSystem.cpp
     src/tests/Status.cpp
-
+    src/tests/TestParameters.cpp
     src/tests/ConfigBuilder.cpp
     src/tests/TesterConfig.cpp
 )
