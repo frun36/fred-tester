@@ -7,6 +7,7 @@
 
 #include "Result.h"
 #include "dic.hxx"
+#include <cstdlib>
 
 class MapiHandler {
   private:
@@ -27,7 +28,7 @@ class MapiHandler {
     };
 
     struct MapiInfo: public DimUpdatedInfo {
-        MapiInfo(std::string name, CommonResult& res, bool isError);
+        MapiInfo(const char* name, CommonResult& res, bool isError);
 
         std::string name;
         CommonResult& res;
@@ -37,6 +38,9 @@ class MapiHandler {
     };
 
     std::string m_name;
+    const char* m_reqName;
+    const char* m_ansName;
+    const char* m_errName;
     CommonResult m_res;
     std::string m_req;
     MapiInfo m_ans;
@@ -44,6 +48,9 @@ class MapiHandler {
 
   public:
     MapiHandler(const std::string& name);
+
+    MapiHandler(const MapiHandler&) = delete;
+    MapiHandler& operator=(const MapiHandler&) = delete;
 
     inline void sendCommand(const std::string& command) {
         DimClient::sendCommand(m_req.c_str(), command.c_str());
@@ -70,4 +77,10 @@ class MapiHandler {
     static std::shared_ptr<MapiHandler> get(const std::string& mapiName);
 
     void resetResponse();
+
+    ~MapiHandler() {
+        free((void*)m_reqName);
+        free((void*)m_ansName);
+        free((void*)m_errName);
+    }
 };

@@ -1,5 +1,6 @@
 #include "MapiHandler.h"
 
+#include <cstring>
 #include <unordered_map>
 
 #include "Logger.h"
@@ -7,11 +8,11 @@
 
 // memory leak after strdup, not a big deal here
 MapiHandler::MapiInfo::MapiInfo(
-    std::string name,
+    const char* name,
     CommonResult& res,
     bool isError
 ) :
-    DimUpdatedInfo(strdup(name.c_str()), -1),
+    DimUpdatedInfo(name, -1),
     name(name),
     res(res),
     isError(isError) {}
@@ -23,7 +24,7 @@ void MapiHandler::MapiInfo::infoHandler() {
     }
 
     std::string contents(getString(), getSize() - 1);
-    
+
     if (res.isReady) {
         Logger::error(
             name,
@@ -44,9 +45,12 @@ void MapiHandler::MapiInfo::infoHandler() {
 
 MapiHandler::MapiHandler(const std::string& name) :
     m_name(name),
-    m_req(name + "_REQ"),
-    m_ans(name + "_ANS", m_res, false),
-    m_err(name + "_ERR", m_res, true) {}
+    m_reqName(strdup((name + "_REQ").c_str())),
+    m_ansName(strdup((name + "_ANS").c_str())),
+    m_errName(strdup((name + "_ERR").c_str())),
+    m_req(m_reqName),
+    m_ans(m_ansName, m_res, false),
+    m_err(m_errName, m_res, true) {}
 
 Result<std::string> MapiHandler::handleResponse(
     double timeout,
