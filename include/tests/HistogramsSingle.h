@@ -12,25 +12,23 @@ class TcmHistogramsSingle: public CommandTest {
 
 static inline std::string pmHistRegex(bool adc0, bool adc1, bool time) {
     std::string re;
-    for (size_t i = 0; i < 12; i++) {
-        re += std::format(R"(CH{:02}ADC0)", i + 1);
-        if (adc0) {
-            re += std::format(R"(,[0-9,]+(?:\.\.\.)?)");
-        }
-        re += R"(\n)";
-
-        re += std::format(R"(CH{:02}ADC1)", i + 1);
-        if (adc1) {
-            re += std::format(R"(,[0-9,]+(?:\.\.\.)?)");
-        }
-        re += R"(\n)";
-
-        re += std::format(R"(CH{:02}TIME)", i + 1);
-        if (time) {
-            re += std::format(R"(,[0-9,]+(?:\.\.\.)?)");
-        }
-        re += R"(\n)";
+    re += R"(ADC0)";
+    if (adc0) {
+        re += std::format(R"(,[0-9,]+(?:\.\.\.)?)");
     }
+    re += R"(\n)";
+
+    re += R"(ADC1)";
+    if (adc1) {
+        re += std::format(R"(,[0-9,]+(?:\.\.\.)?)");
+    }
+    re += R"(\n)";
+
+    re += R"(TIME)";
+    if (time) {
+        re += std::format(R"(,[0-9,]+(?:\.\.\.)?)");
+    }
+    re += R"(\n)";
     return re;
 }
 

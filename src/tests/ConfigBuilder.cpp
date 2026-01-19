@@ -13,9 +13,9 @@ Result<TesterConfig> ConfigBuilder::parseToml(const toml::table& t) {
         return err("Config file must contain [setup], [tests], and [cleanup]");
     }
 
-    TRY(handleTable(*setupOpt, setupOptions));
-    TRY(handleTable(*testsOpt, testsOptions));
-    TRY(handleTable(*cleanupOpt, cleanupOptions));
+    TRY(handleTable(*setupOpt, Section::Setup));
+    TRY(handleTable(*testsOpt, Section::Test));
+    TRY(handleTable(*cleanupOpt, Section::Cleanup));
 
     return TesterConfig {
         *setupTryGet<TesterConfig::Boards>("connected_boards"),
@@ -42,7 +42,9 @@ Result<TesterConfig> ConfigBuilder::parseToml(const toml::table& t) {
     };
 }
 
-Result<void> ConfigBuilder::handleTable(const toml::table& t, Options& o) {
+Result<void> ConfigBuilder::handleTable(const toml::table& t, Section s) {
+    auto& o = getSection(s);
+
     for (auto& [key, val] : o) {
         switch (val->type) {
             case BaseEntry::Type::Bool: {
@@ -51,7 +53,7 @@ Result<void> ConfigBuilder::handleTable(const toml::table& t, Options& o) {
                     return std::unexpected(val.error());
                 }
                 Logger::debug("CONFIG", "Boolean {} = {}", key, *val);
-                setupSet(key, *val);
+                TRY(set(key, s, *val));
                 break;
             }
             case BaseEntry::Type::String: {
@@ -60,7 +62,7 @@ Result<void> ConfigBuilder::handleTable(const toml::table& t, Options& o) {
                     return std::unexpected(val.error());
                 }
                 Logger::debug("CONFIG", "String {} = {}", key, *val);
-                setupSet(key, *val);
+                TRY(set(key, s, *val));
                 break;
             }
             case BaseEntry::Type::Double: {
@@ -69,7 +71,7 @@ Result<void> ConfigBuilder::handleTable(const toml::table& t, Options& o) {
                     return std::unexpected(val.error());
                 }
                 Logger::debug("CONFIG", "Double {} = {}", key, *val);
-                setupSet(key, *val);
+                TRY(set(key, s, *val));
                 break;
             }
             case BaseEntry::Type::OptionalString: {
@@ -83,7 +85,7 @@ Result<void> ConfigBuilder::handleTable(const toml::table& t, Options& o) {
                     key,
                     val->value_or("<none>")
                 );
-                setupSet(key, *val);
+                TRY(set(key, s, *val));
                 break;
             }
             case BaseEntry::Type::Boards: {
@@ -97,7 +99,7 @@ Result<void> ConfigBuilder::handleTable(const toml::table& t, Options& o) {
                     key,
                     val->size()
                 );
-                setupSet(key, *val);
+                TRY(set(key, s, *val));
                 break;
             }
             case BaseEntry::Type::BadChannelMap: {
@@ -111,7 +113,7 @@ Result<void> ConfigBuilder::handleTable(const toml::table& t, Options& o) {
                     key,
                     val->has_value()
                 );
-                setupSet(key, *val);
+                TRY(set(key, s, *val));
                 break;
             }
             default:

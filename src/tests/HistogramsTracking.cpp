@@ -16,7 +16,7 @@ TcmHistogramsTracking::TcmHistogramsTracking(bool selectableHistogramEnabled) :
             R"(02,[0-9,]+(?:\.\.\.)?\n)"
             R"(READ_ELAPSED,({})ms\n)"
             R"(PREV_ELAPSED,({})ms\n)"
-            R"(Executed:.*)",
+            R"((Executed:.*)?)",
             utils::HEX,
             selectableHistogramEnabled ? ",[0-9,]+" : "",
             utils::FLT,
@@ -41,7 +41,7 @@ PmHistogramsTracking::PmHistogramsTracking(
             R"({})"
             R"(READ_ELAPSED,({})ms\n)"
             R"(PREV_ELAPSED,({})ms\n)"
-            R"(Executed:.*)",
+            R"((Executed:.*)?)",
             utils::HEX,
             pmHistRegex(adc0, adc1, time),
             utils::FLT,

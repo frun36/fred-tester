@@ -39,13 +39,17 @@ class ConfigBuilder {
   private:
     enum class Section { Setup, Test, Cleanup };
 
+    Options& getSection(Section section) {
+        auto& o = section == Section::Setup ? setupOptions
+            : section == Section::Test      ? testsOptions
+                                            : cleanupOptions;
+        return o;
+    }
+
     template<typename T>
     ConfigBuilder& option(std::string key, Section section) {
-        auto& vec = section == Section::Setup ? setupOptions
-            : section == Section::Test        ? testsOptions
-                                              : cleanupOptions;
-
-        vec.push_back(
+        auto &o = getSection(section);
+        o.push_back(
             {key, std::make_unique<ConfigEntry<T>>(TypeMapper<T>::value)}
         );
         return *this;
@@ -53,15 +57,13 @@ class ConfigBuilder {
 
     template<typename T>
     Result<T> get(std::string key, Section section) {
-        auto& vec = section == Section::Setup ? setupOptions
-            : section == Section::Test        ? testsOptions
-                                              : cleanupOptions;
+        auto &o = getSection(section);
 
-        auto it = std::find_if(vec.begin(), vec.end(), [&](const auto& pair) {
+        auto it = std::find_if(o.begin(), o.end(), [&](const auto& pair) {
             return pair.first == key;
         });
 
-        if (it == vec.end()) {
+        if (it == o.end()) {
             return err("Key '{}' not found", key);
         }
 
@@ -76,15 +78,12 @@ class ConfigBuilder {
 
     template<typename T>
     Result<void> set(std::string key, Section section, T value) {
-        auto& vec = section == Section::Setup ? setupOptions
-            : section == Section::Test        ? testsOptions
-                                              : cleanupOptions;
-
-        auto it = std::find_if(vec.begin(), vec.end(), [&](const auto& pair) {
+        auto& o = getSection(section);
+        auto it = std::find_if(o.begin(), o.end(), [&](const auto& pair) {
             return pair.first == key;
         });
 
-        if (it == vec.end()) {
+        if (it == o.end()) {
             return err("Key '{}' not found", key);
         }
 
@@ -200,7 +199,7 @@ class ConfigBuilder {
         std::string name
     );
 
-    Result<void> handleTable(const toml::table& t, Options& o);
+    Result<void> handleTable(const toml::table& t, Section section);
 
     Result<TesterConfig> parseToml(const toml::table& t);
 
@@ -236,7 +235,8 @@ struct ConfigBuilder::TypeMapper<TesterConfig::Boards> {
 };
 
 template<>
-struct ConfigBuilder::TypeMapper<std::optional<TesterConfig::BadChannelMapConfig>> {
+struct ConfigBuilder::TypeMapper<
+    std::optional<TesterConfig::BadChannelMapConfig>> {
     static constexpr BaseEntry::Type value = BaseEntry::Type::BadChannelMap;
 };
 

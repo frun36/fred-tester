@@ -100,7 +100,7 @@ const std::string CounterRates::TcmPattern =
         R"(COUNTERS,(?:{}|-)\n)" // 6-20
         R"(RATES,(?:{}|-)\n)" // 21-35
         R"(PREV_ELAPSED,({})ms\n)" // 36
-        R"(Executed:([^\n]*))", // 37
+        R"((Executed:[^\n]*)?)", // 37
         STR, FLT,
         STR, DEC,
         STR,
@@ -117,7 +117,7 @@ const std::string CounterRates::PmPattern =
         R"(COUNTERS,(?:{}|-)\n)" // 6-29
         R"(RATES,(?:{}|-)\n)" // 30-44
         R"(PREV_ELAPSED,({})ms\n)" // 45
-        R"(Executed:([^\n]*))", // 46
+        R"((Executed:[^\n]*)?)", // 46
         STR, FLT,
         STR, DEC,
         STR,
